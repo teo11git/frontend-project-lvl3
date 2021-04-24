@@ -1,0 +1,22 @@
+{
+  "name": "@hexlet/code",
+  "version": "1.0.0",
+  "description": "app that works with rss",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teo11git/frontend-project-lvl3.git"
+  },
+  "keywords": [
+    "rss"
+  ],
+  "author": "Fedor",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/teo11git/frontend-project-lvl3/issues"
+  },
+  "homepage": "https://github.com/teo11git/frontend-project-lvl3#readme"
+}
