@@ -1,3 +1,5 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 const button = document.querySelector('button');
 const div = document.querySelector('.counter');
 
