@@ -1,6 +1,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import axios from 'axios';
+import * as yup from 'yup';
+
+const validator = yup.string().required().url();
 
 const meduzaUrl = 'https://meduza.io/rss2/all';
 
@@ -23,19 +26,29 @@ const getList = (xml) => {
     return post;
   });
   console.log(list);
-}
+};
 
-axios.get(useProxy(meduzaUrl))
-  .then((res) => {
-    // console.log(res.data.contents);
-    return res.data.contents;
-  })
-  .then((str) => {
-    // console.log(str);
-    // parse(str);
-    return parse(str)
-  })
-  .then((xml) => {
-    const items = getList(xml);
-    console.log(items);
-  });
+const input = document.querySelector('input');
+const button = document.querySelector('button');
+
+button.addEventListener('click', (e) => {
+  const userUrl = input.value;
+  validator.validate(userUrl)
+    .then((url) => {
+      return axios.get(useProxy(url))
+    })
+    .then((res) => {
+      // console.log(res.data.contents);
+      return res.data.contents;
+    })
+    .then((str) => {
+      // console.log(str);
+      // parse(str);
+      return parse(str)
+    })
+    .then((xml) => {
+      const items = getList(xml);
+      console.log(items);
+    })
+    .catch(console.log);
+});
