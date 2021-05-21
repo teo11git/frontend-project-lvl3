@@ -54,7 +54,6 @@ export default () => {
 
   button.addEventListener('click', (e) => {
     const userUrl = input.value;
-    watchedState.process = 'filling';
     validator.validate(userUrl)
       .then((url) => {
         watchedState.process = 'sending';
