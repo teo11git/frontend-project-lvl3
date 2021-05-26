@@ -13,6 +13,7 @@ const render = (state, elements) => (path, value) => {
       break;
     case 'validation fault':
       console.log('process setted as validation fault');
+      
       break;
   } 
 };

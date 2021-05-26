@@ -49,10 +49,12 @@ export default () => {
   const handler = render(state, elements);
   const watchedState = onChange(state, handler);
 
+  const form = document.querySelector('form');
   const input = document.querySelector('input');
   const button = document.querySelector('button');
 
-  button.addEventListener('click', (e) => {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
     const userUrl = input.value;
     validator.validate(userUrl)
       .then((url) => {
