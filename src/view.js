@@ -1,22 +1,4 @@
 import onChange from 'on-change';
-/*
-const showError = ({ input, button, errorDiv }, command = 'show') => {
-  if (command === 'show') {
-     errorDiv.textContent = state.errors.validationError; 
-
-    input.classList.add('is-invalid');
-    input.classList.remove('border-primary');
-    input.classList.add('border-danger');
-    button.classList.remove('btn-outline-primary');
-    button.classList.add('btn-outline-danger');
-  }
-  if (command === 'hide') {
-    input.classList.remove('is-invalid');
-    button.classList.remove('btn-outline-danger');
-    button.classList.add('btn-outline-primary');
-  }
-}
-*/
 
 const render = (state, elements) => (path, value) => {
 
@@ -34,6 +16,7 @@ const render = (state, elements) => (path, value) => {
       input.classList.add('border-primary');
     }
   };
+
 
   switch(value) {
     case 'filling':

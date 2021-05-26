@@ -14,12 +14,8 @@ const useProxy = (url) => `https://hexlet-allorigins.herokuapp.com/get?url=${enc
 
 const parse = (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
-  console.log(XMLdocument);
-  return XMLdocument;
-};
 
-const getList = (xml) => {
-  const items = xml.querySelectorAll('item');
+  const items = XMLdocument.querySelectorAll('item');
   const list = [ ...items ].map((item) => {
     const post = {
       title: item.querySelector('title').textContent,
@@ -28,7 +24,12 @@ const getList = (xml) => {
     };
     return post;
   });
-  console.log(list);
+  return list;
+};
+
+const createIdGenerator = (num = 0) => () => {
+  num += 1;
+  return num;
 };
 
 export default () => {
@@ -43,6 +44,7 @@ export default () => {
   };
   
   const elements = {
+    container: document.querySelector('.container'),
     form: document.querySelector('form'),
     button: document.querySelector('button'),
     input: document.querySelector('input'),
@@ -54,30 +56,40 @@ export default () => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
+    console.log('RUN PROCESS');
     const userUrl = elements.input.value;
     validator.validate(userUrl)
       .then((url) => {
+        console.log('MAKE REQUEST TO SERVER');
+        const generateFeedsId = createIdGenerator();
+        state.feeds.push({id: generateFeedsId(), url});
+        console.log(state.feeds);
         watchedState.process = 'sending';
         return axios.get(useProxy(url));
       })
-      .then((res) => {
-        console.log(res);
-        if (res.data.contents === null) {
+      .then((proxyServerResponce) => {
+        console.log(proxyServerResponce);
+        if (proxyServerResponce.data.contents === null) {
           const error = new Error('Can not connect to foreign server');
           error.name = 'webAccessError';
           throw error;
         }
-        return res.data.contents;
+        console.log('GET REQUEST');
+        return proxyServerResponce.data.contents;
       })
-      .then((str) => {
-        // console.log(str);
-        // parse(str);
-        return parse(str)
-      })
-      .then((xml) => {
+      .then(parse)
+      .then((postList) => {
+        console.log('PARSE AND POST');
+        const generatePostId = createIdGenerator();
+        console.log(postList);
+        postList.forEach((post) => {
+          post.id = generatePostId();
+          state.posts.push(post);
+        });
+
         watchedState.process = 'filling';
-        const items = getList(xml);
-        console.log(items);
+        console.log('posts is...');
+        console.log(state.posts);
       })
       .catch((err) => {
         if (err.name === 'ValidationError') {
