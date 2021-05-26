@@ -8,16 +8,14 @@
     <div class="container">
       <div class="jumbotron bg-light shadow-sm">
         <h1><i class="bi bi-rss text-success"></i>RSScan</h1>
-        <form>
-          <div class="input-group mb-3">
-            <input type="text" class="form-control border-primary" placeholder="Enter link here" aria-describedby="button-addon2">
-            <div class="input-group-append">
-              <button class="btn btn-outline-primary" type="button" id="button-addon2">Get feed!</button>
+        <form novalidate>
+          <div class="form-group">
+            <input type="url" class="form-control border-primary">
+            <div class="invalid-feedback">
+              Please provide a valid city.
             </div>
           </div>
-          <div class="invalid-feedback">
-            Please provide a valid city.
-          </div>
+          <button type="submit" class="btn btn-primary">Get feed!</button>
         </form>
       </div>
     </div>

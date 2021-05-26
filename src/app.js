@@ -31,9 +31,6 @@ const getList = (xml) => {
   console.log(list);
 };
 
-
-
-
 export default () => {
   const state = {
     process: 'filling',
@@ -45,17 +42,19 @@ export default () => {
     },
   };
   
-  const elements = {};
+  const elements = {
+    form: document.querySelector('form'),
+    button: document.querySelector('button'),
+    input: document.querySelector('input'),
+    errorDiv: document.querySelector('.invalid-feedback'),
+  };
+
   const handler = render(state, elements);
   const watchedState = onChange(state, handler);
 
-  const form = document.querySelector('form');
-  const input = document.querySelector('input');
-  const button = document.querySelector('button');
-
-  form.addEventListener('submit', (e) => {
+  elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const userUrl = input.value;
+    const userUrl = elements.input.value;
     validator.validate(userUrl)
       .then((url) => {
         watchedState.process = 'sending';
@@ -82,11 +81,11 @@ export default () => {
       })
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          state.errors.validationErrors = err.message;
+          state.errors.validationError = err.message;
           watchedState.process = 'validation fault';
         }
         if (err.name === 'webAccessError') {
-          state.errors.webErrors = err.message;
+          state.errors.webError = err.message;
           watchedState.process = 'access fault';
         }
       });
