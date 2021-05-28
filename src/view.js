@@ -2,6 +2,26 @@ import onChange from 'on-change';
 
 const render = (state, elements) => (path, value) => {
 
+  const renderList = (list) => {
+    // console.log('>>>from renderList');
+    // console.log(list);
+    list.forEach((feed) => {
+      const postsUl = document.createElement('ul');
+      postsUl.classList.add('list-group', 'list-group-flush');
+
+      feed.posts.forEach((post) => {
+        const li = document.createElement('li');
+        li.classList.add('list-group-item');
+        const a = document.createElement('a');
+        a.href = post.link;
+        a.textContent = post.title;
+        li.appendChild(a);
+        postsUl.appendChild(li);
+      });
+      elements.postsContainer.appendChild(postsUl);
+    });  
+  };
+
   const showValidationError = ({ input, button, errorDiv }, command = 'show') => {
     if (command === 'show') {
       errorDiv.textContent = state.errors.validationError;
@@ -21,6 +41,7 @@ const render = (state, elements) => (path, value) => {
   switch(value) {
     case 'filling':
       console.log('process setted as filling');
+      renderList(state.feeds);
       break;
     case 'sending':
       console.log('process setted as sending');

@@ -8,35 +8,43 @@ import render from './view.js';
 
 const validator = yup.string().required().url();
 
-const meduzaUrl = 'https://meduza.io/rss2/all';
-
 const useProxy = (url) => `https://hexlet-allorigins.herokuapp.com/get?url=${encodeURIComponent(url)}`;
+
+const createIdGenerator = (num = 0) => () => {
+  num += 1;
+  return num;
+};
+const generateFeedId = createIdGenerator();
+const generatePostId = createIdGenerator();
+
 
 const parse = (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
-
+  console.log('>>>from Parse');
+  console.log(XMLdocument);
+  const feedInfo = {
+    id: generateFeedId(),
+    domain: XMLdocument.querySelector('generator').textContent,
+    description: XMLdocument.querySelector('description').textContent,
+  };
   const items = XMLdocument.querySelectorAll('item');
-  const list = [ ...items ].map((item) => {
+  const posts = [ ...items ].map((item) => {
     const post = {
+      id: generatePostId(),
       title: item.querySelector('title').textContent,
       description: item.querySelector('description').textContent,
       link: item.querySelector('link').textContent,
     };
     return post;
   });
-  return list;
-};
-
-const createIdGenerator = (num = 0) => () => {
-  num += 1;
-  return num;
+  const result = { feedInfo, posts };
+  return result;
 };
 
 export default () => {
   const state = {
     process: 'filling',
     feeds: [],
-    posts: [],
     errors: {
       webError: '',
       validationError: '',
@@ -44,6 +52,8 @@ export default () => {
   };
   
   const elements = {
+    feedsContainer: document.querySelector('.feeds'),
+    postsContainer : document.querySelector('.posts'),
     container: document.querySelector('.container'),
     form: document.querySelector('form'),
     button: document.querySelector('button'),
@@ -56,40 +66,31 @@ export default () => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-    console.log('RUN PROCESS');
+    console.log('--------------RUN PROCESS');
     const userUrl = elements.input.value;
     validator.validate(userUrl)
       .then((url) => {
-        console.log('MAKE REQUEST TO SERVER');
-        const generateFeedsId = createIdGenerator();
-        state.feeds.push({id: generateFeedsId(), url});
-        console.log(state.feeds);
+        console.log('-----------------MAKE REQUEST TO SERVER');
         watchedState.process = 'sending';
         return axios.get(useProxy(url));
       })
       .then((proxyServerResponce) => {
-        console.log(proxyServerResponce);
+        // console.log(proxyServerResponce);
         if (proxyServerResponce.data.contents === null) {
           const error = new Error('Can not connect to foreign server');
           error.name = 'webAccessError';
           throw error;
         }
-        console.log('GET REQUEST');
+        console.log('--------------GET REQUEST');
         return proxyServerResponce.data.contents;
       })
       .then(parse)
-      .then((postList) => {
-        console.log('PARSE AND POST');
-        const generatePostId = createIdGenerator();
-        console.log(postList);
-        postList.forEach((post) => {
-          post.id = generatePostId();
-          state.posts.push(post);
-        });
+      .then((feed) => {
+        state.feeds.push(feed);
+        console.log(state.feeds);
 
+        console.log('---------PARSE AND POST');
         watchedState.process = 'filling';
-        console.log('posts is...');
-        console.log(state.posts);
       })
       .catch((err) => {
         if (err.name === 'ValidationError') {
