@@ -5,6 +5,7 @@ import axios from 'axios';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import render from './view.js';
+import url from 'url';
 
 const validator = yup.string().required().url();
 
@@ -17,14 +18,13 @@ const createIdGenerator = (num = 0) => () => {
 const generateFeedId = createIdGenerator();
 const generatePostId = createIdGenerator();
 
-
 const parse = (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
   console.log('>>>from Parse');
   console.log(XMLdocument);
   const feedInfo = {
     id: generateFeedId(),
-    domain: XMLdocument.querySelector('generator').textContent,
+    domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
     description: XMLdocument.querySelector('description').textContent,
   };
   const items = XMLdocument.querySelectorAll('item');

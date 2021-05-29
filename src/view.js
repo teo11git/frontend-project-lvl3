@@ -1,20 +1,52 @@
 import onChange from 'on-change';
 
+
+const { log } = console;
 const render = (state, elements) => (path, value) => {
 
   const renderList = (list) => {
-    // console.log('>>>from renderList');
-    // console.log(list);
-    list.forEach((feed) => {
-      const postsUl = document.createElement('ul');
-      postsUl.classList.add('list-group', 'list-group-flush');
+    elements.feedsContainer.innerHTML = '';
+    elements.postsContainer.innerHTML = '';
 
+    const feedHeader = document.createElement('h2');
+    feedHeader.classList.add('border-bottom', 'border-primary');
+    feedHeader.textContent = 'Feeds';
+    elements.feedsContainer.appendChild(feedHeader);
+
+    const postHeader = document.createElement('h2');
+    postHeader.classList.add('border-bottom', 'border-primary');
+    postHeader.textContent = 'Posts';
+    elements.postsContainer.appendChild(postHeader);
+
+    const feedsDl = document.createElement('dl');
+    feedsDl.classList.add('mt-3');
+    feedsDl.classList.add('row');
+
+    const postsUl = document.createElement('ul');
+    postsUl.classList.add('mt-2');
+    postsUl.classList.add('list-group', 'list-group-flush');
+
+    list.forEach((feed) => {
+      const feedTerm = document.createElement('dt');
+      feedTerm.classList.add('col-3');
+      feedTerm.textContent = feed.feedInfo.domain;
+      feedsDl.appendChild(feedTerm);
+
+      const feedDefinition = document.createElement('dd');
+      feedDefinition.classList.add('col-9');
+      feedDefinition.textContent = feed.feedInfo.description;
+
+      feedsDl.appendChild(feedDefinition);
+      elements.feedsContainer.appendChild(feedsDl);
+      
       feed.posts.forEach((post) => {
         const li = document.createElement('li');
         li.classList.add('list-group-item');
+
         const a = document.createElement('a');
         a.href = post.link;
         a.textContent = post.title;
+
         li.appendChild(a);
         postsUl.appendChild(li);
       });
@@ -37,11 +69,11 @@ const render = (state, elements) => (path, value) => {
     }
   };
 
-
   switch(value) {
     case 'filling':
       console.log('process setted as filling');
       renderList(state.feeds);
+      elements.input.value = '';
       break;
     case 'sending':
       console.log('process setted as sending');
@@ -53,7 +85,6 @@ const render = (state, elements) => (path, value) => {
     case 'validation fault':
       console.log('process setted as validation fault');
       showValidationError(elements);
-
       break;
   } 
 };
