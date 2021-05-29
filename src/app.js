@@ -52,6 +52,7 @@ export default () => {
   };
   
   const elements = {
+    statusContainer: document.querySelector('#status'),
     feedsContainer: document.querySelector('.feeds'),
     postsContainer : document.querySelector('.posts'),
     container: document.querySelector('.container'),

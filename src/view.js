@@ -38,7 +38,7 @@ const render = (state, elements) => (path, value) => {
 
       feedsDl.appendChild(feedDefinition);
       elements.feedsContainer.appendChild(feedsDl);
-      
+
       feed.posts.forEach((post) => {
         const li = document.createElement('li');
         li.classList.add('list-group-item');
@@ -69,17 +69,37 @@ const render = (state, elements) => (path, value) => {
     }
   };
 
+  const showStatus = (text, mode) => {
+    const div = elements.statusContainer;
+    div.innerHTML = '';
+    div.classList.remove(...div.classList);
+    div.classList.add('alert');
+    switch (mode) {
+      case 'success':
+        div.classList.add('alert-success');
+        break;
+      case 'danger':
+        div.classList.add('alert-danger');
+        break;
+      default:
+        div.classList.add('alert-info');
+    }
+    div.textContent = text;
+  };
   switch(value) {
     case 'filling':
       console.log('process setted as filling');
+      showStatus('News feed downloaded successfully', 'success');
       renderList(state.feeds);
       elements.input.value = '';
       break;
     case 'sending':
+      showStatus('Trying to get the news feed')
       console.log('process setted as sending');
-      showValidationError(elements, 'hide')
+      showValidationError(elements, 'hide');
       break;
     case 'access fault':
+      showStatus('Cannot connect to server. Please, check url and try again', 'danger');
       console.log('process setted as accesss fault');
       break;
     case 'validation fault':
