@@ -16,7 +16,7 @@ const validate = ({ feeds }, userUrl) => {
   }
   const isDouble = !feeds.every((feed) => feed.url !== userUrl);
   console.log(isDouble);
-  if (isDouble) return 'This URL allready exist';
+  if (isDouble) return 'this URL allready exist';
   return '';
 };
 
@@ -79,6 +79,7 @@ export default () => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
+    watchedState.process = 'filling';
     console.log('--------------RUN PROCESS');
     console.log(state);
     const userUrl = elements.input.value;
