@@ -4,14 +4,14 @@
 import axios from 'axios';
 import * as yup from 'yup';
 import onChange from 'on-change';
-import render from './view.js';
 import url from 'url';
+import render from './view.js';
 
 const validate = ({ feeds }, userUrl) => {
   const validator = yup.string().required().url();
   try {
     validator.validateSync(userUrl);
-  } catch(error) {
+  } catch (error) {
     return error.message;
   }
   const isDouble = !feeds.every((feed) => feed.url !== userUrl);
@@ -35,7 +35,7 @@ const parse = (data) => {
   console.log(XMLdocument);
 
   const items = XMLdocument.querySelectorAll('item');
-  const posts = [ ...items ].map((item) => {
+  const posts = [...items].map((item) => {
     const post = {
       id: generatePostId(),
       title: item.querySelector('title').textContent,
@@ -62,11 +62,11 @@ export default () => {
       validationError: '',
     },
   };
-  
+
   const elements = {
     statusContainer: document.querySelector('#status'),
     feedsContainer: document.querySelector('.feeds'),
-    postsContainer : document.querySelector('.posts'),
+    postsContainer: document.querySelector('.posts'),
     container: document.querySelector('.container'),
     form: document.querySelector('form'),
     button: document.querySelector('button'),
@@ -85,33 +85,33 @@ export default () => {
     const userUrl = elements.input.value;
     const validationResult = validate(state, userUrl);
     if (validationResult === '') {
-    watchedState.process = 'sending';
-    axios.get(useProxy(userUrl))
-      .then((proxyServerResponce) => {
-        console.log(proxyServerResponce);
-        if (proxyServerResponce.data.contents === null) {
-          const error = new Error('Can not connect to foreign server');
-          error.name = 'webAccessError';
-          throw error;
-        }
-        console.log('--------------GET REQUEST');
-        return proxyServerResponce.data.contents;
-      })
-      .then(parse)
-      .then((feed) => {
-        feed.url = userUrl;
-        state.feeds.push(feed);
-        console.log(state.feeds);
+      watchedState.process = 'sending';
+      axios.get(useProxy(userUrl))
+        .then((proxyServerResponce) => {
+          console.log(proxyServerResponce);
+          if (proxyServerResponce.data.contents === null) {
+            const error = new Error('Can not connect to foreign server');
+            error.name = 'webAccessError';
+            throw error;
+          }
+          console.log('--------------GET REQUEST');
+          return proxyServerResponce.data.contents;
+        })
+        .then(parse)
+        .then((feed) => {
+          feed.url = userUrl;
+          state.feeds.push(feed);
+          console.log(state.feeds);
 
-        console.log('---------PARSE AND POST');
-        watchedState.process = 'filling';
-      })
-      .catch((err) => {
-        if (err.name === 'webAccessError') {
-          state.errors.webError = err.message;
-          watchedState.process = 'access fault';
-        }
-      });
+          console.log('---------PARSE AND POST');
+          watchedState.process = 'filling';
+        })
+        .catch((err) => {
+          if (err.name === 'webAccessError') {
+            state.errors.webError = err.message;
+            watchedState.process = 'access fault';
+          }
+        });
     } else {
       state.errors.validationError = validationResult;
       watchedState.process = 'validation fault';

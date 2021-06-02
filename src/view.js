@@ -2,7 +2,6 @@ import onChange from 'on-change';
 
 const { log } = console;
 const render = (state, elements) => (path, value) => {
-
   const renderList = (list) => {
     elements.feedsContainer.innerHTML = '';
     elements.postsContainer.innerHTML = '';
@@ -50,7 +49,7 @@ const render = (state, elements) => (path, value) => {
         postsUl.appendChild(li);
       });
       elements.postsContainer.appendChild(postsUl);
-    });  
+    });
   };
 
   const showValidationError = ({ input, button, errorDiv }, command = 'show') => {
@@ -85,12 +84,12 @@ const render = (state, elements) => (path, value) => {
     }
     div.textContent = text;
   };
-   
+
   const disableForm = (command = true) => {
     const { input, button } = elements;
     if (command === true) {
-    input.setAttribute('disabled', true);
-    button.setAttribute('disabled', true);
+      input.setAttribute('disabled', true);
+      button.setAttribute('disabled', true);
     }
     if (command === false) {
       input.removeAttribute('disabled');
@@ -98,7 +97,7 @@ const render = (state, elements) => (path, value) => {
     }
   };
 
-  switch(value) {
+  switch (value) {
     case 'filling':
       console.log('process setted as filling');
       showStatus('News feed downloaded successfully.', 'success');
@@ -108,7 +107,7 @@ const render = (state, elements) => (path, value) => {
       break;
     case 'sending':
       disableForm();
-      showStatus('Trying to get the news feed.')
+      showStatus('Trying to get the news feed.');
       console.log('process setted as sending');
       showValidationError(elements, 'hide');
       break;
@@ -122,7 +121,7 @@ const render = (state, elements) => (path, value) => {
       showStatus('Please, check url and try again.', 'danger');
       showValidationError(elements);
       break;
-  } 
+  }
 };
 
 export default render;
