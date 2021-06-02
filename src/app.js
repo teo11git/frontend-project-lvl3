@@ -7,7 +7,18 @@ import onChange from 'on-change';
 import render from './view.js';
 import url from 'url';
 
-const validator = yup.string().required().url();
+const validate = ({ feeds }, userUrl) => {
+  const validator = yup.string().required().url();
+  try {
+    validator.validateSync(userUrl);
+  } catch(error) {
+    return error.message;
+  }
+  const isDouble = !feeds.every((feed) => feed.url !== userUrl);
+  console.log(isDouble);
+  if (isDouble) return 'This URL allready exist';
+  return '';
+};
 
 const useProxy = (url) => `https://hexlet-allorigins.herokuapp.com/get?url=${encodeURIComponent(url)}`;
 
@@ -22,11 +33,7 @@ const parse = (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
   console.log('>>>from Parse');
   console.log(XMLdocument);
-  const feedInfo = {
-    id: generateFeedId(),
-    domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
-    description: XMLdocument.querySelector('description').textContent,
-  };
+
   const items = XMLdocument.querySelectorAll('item');
   const posts = [ ...items ].map((item) => {
     const post = {
@@ -37,7 +44,12 @@ const parse = (data) => {
     };
     return post;
   });
-  const result = { feedInfo, posts };
+  const result = {
+    id: generateFeedId(),
+    domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
+    description: XMLdocument.querySelector('description').textContent,
+    posts,
+  };
   return result;
 };
 
@@ -68,15 +80,14 @@ export default () => {
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
     console.log('--------------RUN PROCESS');
+    console.log(state);
     const userUrl = elements.input.value;
-    validator.validate(userUrl)
-      .then((url) => {
-        console.log('-----------------MAKE REQUEST TO SERVER');
-        watchedState.process = 'sending';
-        return axios.get(useProxy(url));
-      })
+    const validationResult = validate(state, userUrl);
+    if (validationResult === '') {
+    watchedState.process = 'sending';
+    axios.get(useProxy(userUrl))
       .then((proxyServerResponce) => {
-        // console.log(proxyServerResponce);
+        console.log(proxyServerResponce);
         if (proxyServerResponce.data.contents === null) {
           const error = new Error('Can not connect to foreign server');
           error.name = 'webAccessError';
@@ -87,6 +98,7 @@ export default () => {
       })
       .then(parse)
       .then((feed) => {
+        feed.url = userUrl;
         state.feeds.push(feed);
         console.log(state.feeds);
 
@@ -94,14 +106,14 @@ export default () => {
         watchedState.process = 'filling';
       })
       .catch((err) => {
-        if (err.name === 'ValidationError') {
-          state.errors.validationError = err.message;
-          watchedState.process = 'validation fault';
-        }
         if (err.name === 'webAccessError') {
           state.errors.webError = err.message;
           watchedState.process = 'access fault';
         }
       });
+    } else {
+      state.errors.validationError = validationResult;
+      watchedState.process = 'validation fault';
+    }
   });
 };
