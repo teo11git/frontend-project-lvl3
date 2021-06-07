@@ -1,7 +1,7 @@
 import onChange from 'on-change';
 
 const { log } = console;
-const render = (state, elements) => (path, value) => {
+const render = (state, elements, i18n) => (path, value) => {
   const renderList = (list) => {
     if (list.length === 0) return;
     elements.feedsContainer.innerHTML = '';
@@ -101,26 +101,26 @@ const render = (state, elements) => (path, value) => {
   switch (value) {
     case 'filling':
       console.log('process setted as filling');
-      showStatus('News feed downloaded successfully.', 'success');
+      showStatus(i18n.t('statusBar.success'), 'success');
       renderList(state.feeds);
       disableForm(false);
       elements.input.value = '';
       break;
     case 'sending':
       disableForm();
-      showStatus('Trying to get the news feed.');
+      showStatus(i18n.t('statusBar.trying'));
       console.log('process setted as sending');
       showValidationError(elements, 'hide');
       break;
     case 'access fault':
-      showStatus('Cannot connect to server. Please, check url and try again.', 'danger');
+      showStatus(i18n.t('statusBar.webError'), 'danger');
       disableForm(false);
       console.log('process setted as accesss fault');
       break;
     case 'validation fault':
       console.log('process setted as validation fault');
       console.log(state);
-      showStatus('Please, check url and try again.', 'danger');
+      showStatus(i18n.t('statusBar.validationError'), 'danger');
       showValidationError(elements);
       break;
     default:

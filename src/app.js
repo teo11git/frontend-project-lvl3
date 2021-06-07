@@ -3,16 +3,25 @@ import * as yup from 'yup';
 import onChange from 'on-change';
 import url from 'url';
 import i18next from 'i18next';
+import resources from './locales';
 import render from './view.js';
 
-const validate = ({ feeds }, userUrl) => {
+const validate = ({ feeds }, userUrl, i18n) => {
+  yup.setLocale({
+      mixed: {
+        'default': 'Validation error',
+        required: 'MUSST BEEE',
+        url: 'URLLLL'
+      },
+  });
+
   const validator = yup.string().required().url();
   try {
     validator.validateSync(userUrl);
   } catch (error) {
     return error.message;
   }
-  const isDouble = !feeds.every((feed) => feed.url !== userUrl);
+  const isDouble = !(feeds.every((feed) => feed.url !== userUrl));
   if (isDouble) return 'this URL allready exist';
   return '';
 };
@@ -50,6 +59,7 @@ const parse = (data) => {
 
 export default () => {
   const state = {
+    currentLang: 'en',
     process: 'filling',
     feeds: [],
     errors: {
@@ -57,6 +67,13 @@ export default () => {
       validationError: '',
     },
   };
+
+  const i18nInstance = i18next.createInstance();
+  i18nInstance.init({
+    lng: 'en',
+    debug: false,
+    resources,
+  });
 
   const elements = {
     statusContainer: document.querySelector('#status'),
@@ -69,12 +86,11 @@ export default () => {
     errorDiv: document.querySelector('.invalid-feedback'),
   };
 
-  const handler = render(state, elements);
+  const handler = render(state, elements, i18nInstance);
   const watchedState = onChange(state, handler);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-    // watchedState.process = 'filling';
     console.log('--------------RUN PROCESS');
     console.log(state);
     const userUrl = elements.input.value;
