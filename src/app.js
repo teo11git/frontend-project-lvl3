@@ -1,10 +1,8 @@
-// import 'bootstrap/dist/css/bootstrap.min.css';
-// import 'bootstrap-icons/font/bootstrap-icons.css';
-
 import axios from 'axios';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import url from 'url';
+import i18next from 'i18next';
 import render from './view.js';
 
 const validate = ({ feeds }, userUrl) => {
@@ -15,7 +13,6 @@ const validate = ({ feeds }, userUrl) => {
     return error.message;
   }
   const isDouble = !feeds.every((feed) => feed.url !== userUrl);
-  console.log(isDouble);
   if (isDouble) return 'this URL allready exist';
   return '';
 };
@@ -37,7 +34,6 @@ const parse = (data) => {
   const items = XMLdocument.querySelectorAll('item');
   const posts = [...items].map((item) => {
     const post = {
-      id: generatePostId(),
       title: item.querySelector('title').textContent,
       description: item.querySelector('description').textContent,
       link: item.querySelector('link').textContent,
@@ -45,7 +41,6 @@ const parse = (data) => {
     return post;
   });
   const result = {
-    id: generateFeedId(),
     domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
     description: XMLdocument.querySelector('description').textContent,
     posts,
@@ -79,42 +74,47 @@ export default () => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-    watchedState.process = 'filling';
+    // watchedState.process = 'filling';
     console.log('--------------RUN PROCESS');
     console.log(state);
     const userUrl = elements.input.value;
     const validationResult = validate(state, userUrl);
-    if (validationResult === '') {
-      watchedState.process = 'sending';
-      axios.get(useProxy(userUrl))
-        .then((proxyServerResponce) => {
-          console.log(proxyServerResponce);
-          if (proxyServerResponce.data.contents === null) {
-            const error = new Error('Can not connect to foreign server');
-            error.name = 'webAccessError';
-            throw error;
-          }
-          console.log('--------------GET REQUEST');
-          return proxyServerResponce.data.contents;
-        })
-        .then(parse)
-        .then((feed) => {
-          feed.url = userUrl;
-          state.feeds.push(feed);
-          console.log(state.feeds);
-
-          console.log('---------PARSE AND POST');
-          watchedState.process = 'filling';
-        })
-        .catch((err) => {
-          if (err.name === 'webAccessError') {
-            state.errors.webError = err.message;
-            watchedState.process = 'access fault';
-          }
-        });
-    } else {
+    if (validationResult !== '') {
+      console.log(validationResult);
       state.errors.validationError = validationResult;
-      watchedState.process = 'validation fault';
+      console.log('ERROR');
+      console.log(state);
+      watchedState.process = 'validation fault'; //           TRANSITION
+      watchedState.process = ''; //                           TRANSITION
+      return;
     }
+    watchedState.process = 'sending'; //                      TRANSITION
+    axios.get(useProxy(userUrl))
+      .then((proxyServerResponce) => {
+        console.log(proxyServerResponce);
+        if (proxyServerResponce.data.contents === null) {
+          const error = new Error('Can not connect to foreign server');
+          error.name = 'webAccessError';
+          throw error;
+        }
+        console.log('--------------GET REQUEST');
+        return proxyServerResponce.data.contents;
+      })
+      .then(parse)
+      .then((feed) => {
+        feed.id = generateFeedId();
+        feed.url = userUrl;
+        feed.posts.map((post) => post.id = generatePostId());
+        state.feeds.push(feed);
+        console.log(state.feeds);
+        console.log('---------PARSE AND POST');
+        watchedState.process = 'filling'; //                  TRANSITION
+      })
+      .catch((err) => {
+        if (err.name === 'webAccessError') {
+          state.errors.webError = err.message;
+          watchedState.process = 'access fault'; //           TRANSITION
+        }
+      });
   });
 };

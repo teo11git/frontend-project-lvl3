@@ -3,6 +3,7 @@ import onChange from 'on-change';
 const { log } = console;
 const render = (state, elements) => (path, value) => {
   const renderList = (list) => {
+    if (list.length === 0) return;
     elements.feedsContainer.innerHTML = '';
     elements.postsContainer.innerHTML = '';
 
@@ -118,9 +119,13 @@ const render = (state, elements) => (path, value) => {
       break;
     case 'validation fault':
       console.log('process setted as validation fault');
+      console.log(state);
       showStatus('Please, check url and try again.', 'danger');
       showValidationError(elements);
       break;
+    default:
+      // Do nothing
+      ;
   }
 };
 

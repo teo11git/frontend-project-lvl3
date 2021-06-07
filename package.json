@@ -4,6 +4,8 @@
   "description": "app that works with rss",
   "main": "index.js",
   "scripts": {
+    "serve": "npx webpack serve --open",
+    "develope": "npx webpack --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rm -rf dist && npx webpack --node-env production"
   },
@@ -41,6 +43,7 @@
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "bootstrap-icons": "^1.4.1",
+    "i18next": "^20.3.1",
     "jquery": "^3.6.0",
     "on-change": "^3.0.2",
     "popper.js": "^1.16.1",
