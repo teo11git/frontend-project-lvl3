@@ -8,11 +8,11 @@ import render from './view.js';
 
 const validate = ({ feeds }, userUrl, i18n) => {
   yup.setLocale({
-      mixed: {
-        'default': 'Validation error',
-        required: 'MUSST BEEE',
-        url: 'URLLLL'
-      },
+    mixed: {
+      'default': 'Validation error',
+      required: i18n.t('validationMessages.required'),
+      url: i18n.t('validationMessages.url'),
+    },
   });
 
   const validator = yup.string().required().url();
@@ -26,7 +26,7 @@ const validate = ({ feeds }, userUrl, i18n) => {
   return '';
 };
 
-const useProxy = (url) => `https://hexlet-allorigins.herokuapp.com/get?url=${encodeURIComponent(url)}`;
+const useProxy = (url) => `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(url)}`;
 
 const createIdGenerator = (num = 0) => () => {
   num += 1;
@@ -44,7 +44,7 @@ const parse = (data) => {
   const posts = [...items].map((item) => {
     const post = {
       title: item.querySelector('title').textContent,
-      description: item.querySelector('description').textContent,
+      description: item.querySelector('description')?.textContent ?? null,
       link: item.querySelector('link').textContent,
     };
     return post;
@@ -86,20 +86,64 @@ export default () => {
     errorDiv: document.querySelector('.invalid-feedback'),
   };
 
+  const startUpdater = (feed) => {
+    console.log(`start updater on ${feed.domain}`);
+    feed.onUpdate = true;
+    let isWork = 0;
+
+    const update = () => {
+      window.setTimeout((link) => {
+        console.log(`update ${feed.domain} ${isWork} times`);
+        isWork += 1;
+        axios.get(useProxy(feed.url))
+          .then((serverResponce) => {
+            if (serverResponce.data.contents === null) {
+            const error = new Error('update error');
+            error.name = 'updateError';
+            console.log('Stop Updater');
+            isWork = 100;
+            throw error;
+          }
+            return serverResponce.data.contents;
+          })
+          .then(parse)
+          .then((news) => {
+            const uniqNews = news.posts.filter((item) => {
+              return feed.posts.every((post) => post.link !== item.link);
+            });
+            if (uniqNews.length === 0) {
+              console.log('no news!');
+            } else {
+              uniqNews.forEach((item) => {
+                console.log(`find new post ${item.title}`);
+                console.log('push to state!');
+                item.id = generatePostId();
+                feed.posts.push(item);
+                watchedState.process = 'updating';
+              });
+            }
+           if (isWork < 60000) {
+              update();
+            }
+          }).catch((err) => {
+            feed.onUpdate = false;
+            console.log(err);
+          });
+      }, 5000);
+    };
+    update();
+  };
+
   const handler = render(state, elements, i18nInstance);
   const watchedState = onChange(state, handler);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-    console.log('--------------RUN PROCESS');
-    console.log(state);
+    console.log('--------------RUN PROCESS'); console.log(state);
     const userUrl = elements.input.value;
-    const validationResult = validate(state, userUrl);
+    const validationResult = validate(state, userUrl, i18nInstance);
     if (validationResult !== '') {
-      console.log(validationResult);
       state.errors.validationError = validationResult;
-      console.log('ERROR');
-      console.log(state);
       watchedState.process = 'validation fault'; //           TRANSITION
       watchedState.process = ''; //                           TRANSITION
       return;
@@ -118,19 +162,20 @@ export default () => {
       })
       .then(parse)
       .then((feed) => {
+        console.log(feed);
         feed.id = generateFeedId();
         feed.url = userUrl;
+        feed.onUpdate = false;
         feed.posts.map((post) => post.id = generatePostId());
         state.feeds.push(feed);
-        console.log(state.feeds);
-        console.log('---------PARSE AND POST');
         watchedState.process = 'filling'; //                  TRANSITION
+        state.feeds.forEach((feed) => {
+          if (feed.onUpdate === false) startUpdater(feed);
+        });
       })
       .catch((err) => {
-        if (err.name === 'webAccessError') {
           state.errors.webError = err.message;
           watchedState.process = 'access fault'; //           TRANSITION
-        }
       });
   });
 };

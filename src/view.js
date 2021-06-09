@@ -85,7 +85,7 @@ const render = (state, elements, i18n) => (path, value) => {
     }
     div.textContent = text;
   };
-
+/*
   const disableForm = (command = true) => {
     const { input, button } = elements;
     if (command === true) {
@@ -97,24 +97,27 @@ const render = (state, elements, i18n) => (path, value) => {
       button.removeAttribute('disabled');
     }
   };
-
+*/
   switch (value) {
     case 'filling':
       console.log('process setted as filling');
       showStatus(i18n.t('statusBar.success'), 'success');
       renderList(state.feeds);
-      disableForm(false);
+      //disableForm(false);
       elements.input.value = '';
       break;
     case 'sending':
-      disableForm();
-      showStatus(i18n.t('statusBar.trying'));
+      //disableForm();
       console.log('process setted as sending');
+      showStatus(i18n.t('statusBar.trying'));
       showValidationError(elements, 'hide');
+      break;
+    case 'updating':
+      renderList(state.feeds);
       break;
     case 'access fault':
       showStatus(i18n.t('statusBar.webError'), 'danger');
-      disableForm(false);
+      //disableForm(false);
       console.log('process setted as accesss fault');
       break;
     case 'validation fault':
