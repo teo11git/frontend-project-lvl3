@@ -1,4 +1,6 @@
 import onChange from 'on-change';
+import $ from 'jquery';
+
 
 const { log } = console;
 const render = (state, elements, i18n) => (path, value) => {
@@ -40,13 +42,26 @@ const render = (state, elements, i18n) => (path, value) => {
 
       feed.posts.forEach((post) => {
         const li = document.createElement('li');
+        // li.id = `feed.id/post.id`;
         li.classList.add('list-group-item');
+        li.classList.add('d-flex',
+          'justify-content-between',
+          'align-items-baseline');
 
         const a = document.createElement('a');
         a.href = post.link;
         a.textContent = post.title;
 
+        const viewBtn = document.createElement('button');
+        viewBtn.setAttribute('type', 'button');
+        viewBtn.setAttribute('data-toggle', 'modal');
+        viewBtn.setAttribute('data-target', '#myModal');
+        viewBtn.id = `${feed.id}::${post.id}`;
+        viewBtn.classList.add('btn', 'btn-primary', 'readBtn');
+        viewBtn.textContent = 'Read';
+
         li.appendChild(a);
+        li.appendChild(viewBtn);
         postsUl.appendChild(li);
       });
       elements.postsContainer.appendChild(postsUl);
@@ -98,6 +113,7 @@ const render = (state, elements, i18n) => (path, value) => {
     }
   };
 */
+
   switch (value) {
     case 'filling':
       console.log('process setted as filling');

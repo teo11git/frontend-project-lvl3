@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import axios from 'axios';
 import * as yup from 'yup';
 import onChange from 'on-change';
@@ -5,6 +6,7 @@ import url from 'url';
 import i18next from 'i18next';
 import resources from './locales';
 import render from './view.js';
+import DOMPurify from 'dompurify';
 
 const validate = ({ feeds }, userUrl, i18n) => {
   yup.setLocale({
@@ -44,7 +46,7 @@ const parse = (data) => {
   const posts = [...items].map((item) => {
     const post = {
       title: item.querySelector('title').textContent,
-      description: item.querySelector('description')?.textContent ?? null,
+      description: item.querySelector('description')?.textContent ?? '',
       link: item.querySelector('link').textContent,
     };
     return post;
@@ -66,6 +68,9 @@ export default () => {
       webError: '',
       validationError: '',
     },
+    modalWindow: {
+      content: '1::1',
+    },
   };
 
   const i18nInstance = i18next.createInstance();
@@ -84,6 +89,11 @@ export default () => {
     button: document.querySelector('button'),
     input: document.querySelector('input'),
     errorDiv: document.querySelector('.invalid-feedback'),
+    modalWindow: {
+      title: document.querySelector('.modal-title'), 
+      body: document.querySelector('.modal-body'),
+      button: document.querySelector('.readMoreBtn'),
+    },
   };
 
   const makeRequest = (url) => {
@@ -105,11 +115,11 @@ export default () => {
     feed.onUpdate = true;
     let isWork = 0;
   
-    const update = () => {
-      window.setTimeout(() => {
+    const update = (link) => {
+      window.setTimeout((link) => {
         console.log(`update ${feed.domain} ${isWork} times`);
         isWork += 1;
-        makeRequest(feed.url) 
+        makeRequest(link) 
           .then(parse)
           .then((news) => {
             const uniqNews = news.posts.filter((item) => {
@@ -135,10 +145,29 @@ export default () => {
             console.log('update fault');
             console.log(err);
           });
-      }, 5000);
+      }, 5000, feed.url);
     };
     update();
   };
+
+  $('#myModal').on('shown.bs.modal', function (e) {
+    const contentID = e.relatedTarget.id;
+    state.modalWindow.content = contentID;
+    const [ feedID, postID ] = contentID.split('::');
+    const currentPost = state.feeds
+      .find((feed) => feed.id === Number(feedID))
+      .posts
+      .find((post) => post.id === Number(postID));
+    elements.modalWindow.title.textContent = currentPost.title;
+    elements.modalWindow.body.innerHTML = DOMPurify.sanitize(currentPost.description);
+    elements.modalWindow.button.addEventListener('click', (e) => {
+      window.location.href = currentPost.link;
+    })
+  });
+  $('#myModal').on('hide.bs.modal', function (e) {
+    elements.modalWindow.body.innerHTML = '';
+    watchedState.process = '';
+  });
 
   const handler = render(state, elements, i18nInstance);
   const watchedState = onChange(state, handler);
@@ -162,12 +191,16 @@ export default () => {
         feed.id = generateFeedId();
         feed.url = userUrl;
         feed.onUpdate = false;
-        feed.posts.map((post) => post.id = generatePostId());
+        feed.posts.map((post) => { 
+          post.id = generatePostId();
+          post.isNew = true;
+        });
         state.feeds.push(feed);
         watchedState.process = 'filling'; //                  TRANSITION
         state.feeds.forEach((feed) => {
           if (feed.onUpdate === false) startUpdater(feed);
         });
+
       })
       .catch((err) => {
           state.errors.webError = err.message;
