@@ -7,6 +7,7 @@ import i18next from 'i18next';
 import resources from './locales';
 import render from './view.js';
 import DOMPurify from 'dompurify';
+import parse from './parser.js';
 
 const validate = ({ feeds }, userUrl, i18n) => {
   yup.setLocale({
@@ -16,15 +17,14 @@ const validate = ({ feeds }, userUrl, i18n) => {
       url: i18n.t('validationMessages.url'),
     },
   });
-
   const validator = yup.string().required().url();
   try {
     validator.validateSync(userUrl);
   } catch (error) {
     return error.message;
   }
-  const isDouble = !(feeds.every((feed) => feed.url !== userUrl));
-  if (isDouble) return 'this URL allready exist';
+  const isAlreadyExist = !(feeds.every((feed) => feed.url !== userUrl));
+  if (isAlreadyExist) return 'this URL allready exist';
   return '';
 };
 
@@ -36,28 +36,6 @@ const createIdGenerator = (num = 0) => () => {
 };
 const generateFeedId = createIdGenerator();
 const generatePostId = createIdGenerator();
-
-const parse = (data) => {
-  const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
-  console.log('>>>from Parse');
-  console.log(XMLdocument);
-
-  const items = XMLdocument.querySelectorAll('item');
-  const posts = [...items].map((item) => {
-    const post = {
-      title: item.querySelector('title').textContent,
-      description: item.querySelector('description')?.textContent ?? '',
-      link: item.querySelector('link').textContent,
-    };
-    return post;
-  });
-  const result = {
-    domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
-    description: XMLdocument.querySelector('description').textContent,
-    posts,
-  };
-  return result;
-};
 
 export default () => {
   const state = {
@@ -81,10 +59,10 @@ export default () => {
   });
 
   const elements = {
+    container: document.querySelector('.container'),
     statusContainer: document.querySelector('#status'),
     feedsContainer: document.querySelector('.feeds'),
     postsContainer: document.querySelector('.posts'),
-    container: document.querySelector('.container'),
     form: document.querySelector('form'),
     button: document.querySelector('button'),
     input: document.querySelector('input'),
@@ -100,7 +78,6 @@ export default () => {
     return axios.get(useProxy(url))
       .then((serverResponce) => {
         const { contents } = serverResponce.data;
-        console.log(serverResponce);
         if (contents === null) {
           const error = new Error('cannot connect to server');
           error.name = 'webAccessError';
@@ -113,11 +90,9 @@ export default () => {
   const startUpdater = (feed) => {
     console.log(`start updater on ${feed.domain}`);
     feed.onUpdate = true;
-    let isWork = 0;
   
     const update = (link) => {
       window.setTimeout((link) => {
-        console.log(`update ${feed.domain} ${isWork} times`);
         isWork += 1;
         makeRequest(link) 
           .then(parse)
@@ -129,20 +104,16 @@ export default () => {
               console.log('no news!');
             } else {
               uniqNews.forEach((item) => {
-                console.log(`find new post ${item.title}`);
-                console.log('push to state!');
                 item.id = generatePostId();
                 feed.posts.unshift(item);
                 watchedState.process = 'updating';
                 watchedState.process = '';
               });
             }
-           if (isWork < 60000) {
-              update();
-            }
+            update();
           }).catch((err) => {
             feed.onUpdate = false;
-            console.log('update fault');
+            console.log('update failed');
             console.log(err);
           });
       }, 5000, feed.url);
@@ -166,7 +137,6 @@ export default () => {
   });
   $('#myModal').on('hide.bs.modal', function (e) {
     elements.modalWindow.body.innerHTML = '';
-    watchedState.process = '';
   });
 
   const handler = render(state, elements, i18nInstance);
@@ -187,7 +157,6 @@ export default () => {
     makeRequest(userUrl)
       .then(parse)
       .then((feed) => {
-        console.log(feed);
         feed.id = generateFeedId();
         feed.url = userUrl;
         feed.onUpdate = false;
@@ -200,6 +169,7 @@ export default () => {
         state.feeds.forEach((feed) => {
           if (feed.onUpdate === false) startUpdater(feed);
         });
+
 
       })
       .catch((err) => {
