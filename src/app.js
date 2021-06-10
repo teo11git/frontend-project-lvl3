@@ -86,26 +86,30 @@ export default () => {
     errorDiv: document.querySelector('.invalid-feedback'),
   };
 
+  const makeRequest = (url) => {
+    return axios.get(useProxy(url))
+      .then((serverResponce) => {
+        const { contents } = serverResponce.data;
+        console.log(serverResponce);
+        if (contents === null) {
+          const error = new Error('cannot connect to server');
+          error.name = 'webAccessError';
+          throw error;
+        }
+        return contents;
+      });
+  };
+
   const startUpdater = (feed) => {
     console.log(`start updater on ${feed.domain}`);
     feed.onUpdate = true;
     let isWork = 0;
-
+  
     const update = () => {
-      window.setTimeout((link) => {
+      window.setTimeout(() => {
         console.log(`update ${feed.domain} ${isWork} times`);
         isWork += 1;
-        axios.get(useProxy(feed.url))
-          .then((serverResponce) => {
-            if (serverResponce.data.contents === null) {
-            const error = new Error('update error');
-            error.name = 'updateError';
-            console.log('Stop Updater');
-            isWork = 100;
-            throw error;
-          }
-            return serverResponce.data.contents;
-          })
+        makeRequest(feed.url) 
           .then(parse)
           .then((news) => {
             const uniqNews = news.posts.filter((item) => {
@@ -118,8 +122,9 @@ export default () => {
                 console.log(`find new post ${item.title}`);
                 console.log('push to state!');
                 item.id = generatePostId();
-                feed.posts.push(item);
+                feed.posts.unshift(item);
                 watchedState.process = 'updating';
+                watchedState.process = '';
               });
             }
            if (isWork < 60000) {
@@ -127,6 +132,7 @@ export default () => {
             }
           }).catch((err) => {
             feed.onUpdate = false;
+            console.log('update fault');
             console.log(err);
           });
       }, 5000);
@@ -149,17 +155,7 @@ export default () => {
       return;
     }
     watchedState.process = 'sending'; //                      TRANSITION
-    axios.get(useProxy(userUrl))
-      .then((proxyServerResponce) => {
-        console.log(proxyServerResponce);
-        if (proxyServerResponce.data.contents === null) {
-          const error = new Error('Can not connect to foreign server');
-          error.name = 'webAccessError';
-          throw error;
-        }
-        console.log('--------------GET REQUEST');
-        return proxyServerResponce.data.contents;
-      })
+    makeRequest(userUrl)
       .then(parse)
       .then((feed) => {
         console.log(feed);
