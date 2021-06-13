@@ -91,7 +91,7 @@ export default () => {
       return contents;
     });
 
-  const startUpdater = (feed) => {
+  const runUpdater = (feed) => {
     console.log(`start updater on ${feed.domain}`);
     feed.onUpdate = true;
 
@@ -170,7 +170,7 @@ export default () => {
         state.feeds.push(feed);
         watchedState.process = 'filling'; //                  TRANSITION
         state.feeds.forEach((feed) => {
-          if (feed.onUpdate === false) startUpdater(feed);
+          if (feed.onUpdate === false) runUpdater(feed);
         });
       })
       .catch((err) => {
