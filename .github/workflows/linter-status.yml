@@ -1,4 +1,4 @@
-name: my-tests
+name: linter-status
 
 on:
   push:
