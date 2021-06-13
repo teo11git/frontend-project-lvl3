@@ -5,4 +5,4 @@ lint:
 	npx eslint .
 
 build:
-	npm run build
+	npm run build	
