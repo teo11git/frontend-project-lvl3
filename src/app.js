@@ -92,7 +92,6 @@ export default () => {
     });
 
   const runUpdater = (feed) => {
-    console.log(`start updater on ${feed.domain}`);
     feed.onUpdate = true;
 
     const update = () => {
@@ -104,7 +103,7 @@ export default () => {
               (item) => feed.posts.every((post) => post.link !== item.link)
             );
             if (uniqNews.length === 0) {
-              console.log('no news!');
+              // no news
             } else {
               uniqNews.forEach((item) => {
                 item.id = generatePostId();
@@ -116,8 +115,6 @@ export default () => {
             update(link);
           }).catch((err) => {
             feed.onUpdate = false;
-            console.log('update failed');
-            console.log(err);
           });
       }, 5000, feed.url);
     };
@@ -147,7 +144,6 @@ export default () => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-    console.log('--------------RUN PROCESS'); console.log(state);
     const userUrl = elements.input.value;
     const validationResult = validate(state, userUrl, i18nInstance);
     if (validationResult !== '') {
@@ -174,7 +170,6 @@ export default () => {
         });
       })
       .catch((err) => {
-        console.log(err);
         switch (err.name) {
           case 'parseError':
             state.errors.webError = i18nInstance.t('statusBar.parseError');

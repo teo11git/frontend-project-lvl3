@@ -113,7 +113,6 @@ export default (state, elements, i18n) => (path, value) => {
 
   switch (value) {
     case 'filling':
-      console.log('process setted as filling');
       showStatus(i18n.t('statusBar.success'), 'success');
       renderList(state.feeds);
       // disableForm(false);
@@ -121,23 +120,17 @@ export default (state, elements, i18n) => (path, value) => {
       break;
     case 'sending':
       // disableForm();
-      console.log('process setted as sending');
       showStatus(i18n.t('statusBar.trying'));
       showValidationError(elements, 'hide');
       break;
     case 'updating':
-      console.log('start update');
-      console.log(state.feeds);
       renderList(state.feeds);
       break;
     case 'access fault':
       showStatus(state.errors.webError, 'danger');
       // disableForm(false);
-      console.log('process setted as accesss fault');
       break;
     case 'validation fault':
-      console.log('process setted as validation fault');
-      console.log(state);
       showStatus(i18n.t('statusBar.validationError'), 'danger');
       showValidationError(elements);
       break;
