@@ -1,5 +1,8 @@
 export default {
   translation: {
+    commonView: {
+      readButton: 'Read',
+    },
     validationMessages: {
       required: 'this is a required field',
       url: 'this must be a valid URL',

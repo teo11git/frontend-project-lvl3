@@ -1,5 +1,8 @@
 export default {
   translation: {
+    commonView: {
+      readButton: 'Просмотр',
+    },
     validationMessages: {
       required: 'не должно быть пустым',
       url: 'ссылка должна быть валидным URL',

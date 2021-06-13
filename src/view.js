@@ -55,7 +55,7 @@ export default (state, elements, i18n) => (path, value) => {
         viewBtn.setAttribute('data-target', '#myModal');
         viewBtn.id = `${feed.id}::${post.id}`;
         viewBtn.classList.add('btn', 'btn-primary', 'readBtn');
-        viewBtn.textContent = 'Read';
+        viewBtn.textContent = i18n.t('commonView.readButton');
 
         li.appendChild(a);
         li.appendChild(viewBtn);
