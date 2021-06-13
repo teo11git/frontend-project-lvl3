@@ -2,7 +2,7 @@
   "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "app that works with rss",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "serve": "npx webpack serve --open",
     "develope": "npx webpack --watch",
