@@ -2,17 +2,16 @@ import $ from 'jquery';
 import axios from 'axios';
 import * as yup from 'yup';
 import onChange from 'on-change';
-import url from 'url';
 import i18next from 'i18next';
+import DOMPurify from 'dompurify';
 import resources from './locales';
 import render from './view.js';
-import DOMPurify from 'dompurify';
 import parse from './parser.js';
 
 const validate = ({ feeds }, userUrl, i18n) => {
   yup.setLocale({
     mixed: {
-      'default': 'Validation error',
+      default: 'Validation error',
       required: i18n.t('validationMessages.required'),
       url: i18n.t('validationMessages.url'),
     },
@@ -30,16 +29,20 @@ const validate = ({ feeds }, userUrl, i18n) => {
 
 const useProxy = (url) => `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(url)}`;
 
-const createIdGenerator = (num = 0) => () => {
-  num += 1;
-  return num;
+const createIdGenerator = () => {
+  let num = 0;
+  return () => {
+    num += 1;
+    return num;
+  };
 };
+
 const generateFeedId = createIdGenerator();
 const generatePostId = createIdGenerator();
 
 export default () => {
   const state = {
-    currentLang: 'en',
+    currentLang: 'ru',
     process: 'filling',
     feeds: [],
     errors: {
@@ -47,13 +50,13 @@ export default () => {
       validationError: '',
     },
     modalWindow: {
-      content: '1::1',
+      content: '1::1', // this code means feed id and post id
     },
   };
 
   const i18nInstance = i18next.createInstance();
   i18nInstance.init({
-    lng: 'en',
+    lng: 'ru',
     debug: false,
     resources,
   });
@@ -68,38 +71,38 @@ export default () => {
     input: document.querySelector('input'),
     errorDiv: document.querySelector('.invalid-feedback'),
     modalWindow: {
-      title: document.querySelector('.modal-title'), 
+      title: document.querySelector('.modal-title'),
       body: document.querySelector('.modal-body'),
       button: document.querySelector('.readMoreBtn'),
     },
   };
 
-  const makeRequest = (url) => {
-    return axios.get(useProxy(url))
-      .then((serverResponce) => {
-        const { contents } = serverResponce.data;
-        if (contents === null) {
-          const error = new Error('cannot connect to server');
-          error.name = 'webAccessError';
-          throw error;
-        }
-        return contents;
-      });
-  };
+  const handler = render(state, elements, i18nInstance);
+  const watchedState = onChange(state, handler);
+
+  const makeRequest = (url) => axios.get(useProxy(url))
+    .then((serverResponce) => {
+      const { contents } = serverResponce.data;
+      if (contents === null) {
+        const error = new Error('cannot connect to server');
+        error.name = 'webAccessError';
+        throw error;
+      }
+      return contents;
+    });
 
   const startUpdater = (feed) => {
     console.log(`start updater on ${feed.domain}`);
     feed.onUpdate = true;
-  
-    const update = (link) => {
+
+    const update = () => {
       window.setTimeout((link) => {
-        isWork += 1;
-        makeRequest(link) 
-          .then(parse)
+        makeRequest(link)
+          .then((data) => parse(data, i18nInstance))
           .then((news) => {
-            const uniqNews = news.posts.filter((item) => {
-              return feed.posts.every((post) => post.link !== item.link);
-            });
+            const uniqNews = news.posts.filter(
+              (item) => feed.posts.every((post) => post.link !== item.link)
+            );
             if (uniqNews.length === 0) {
               console.log('no news!');
             } else {
@@ -110,7 +113,7 @@ export default () => {
                 watchedState.process = '';
               });
             }
-            update();
+            update(link);
           }).catch((err) => {
             feed.onUpdate = false;
             console.log('update failed');
@@ -121,26 +124,26 @@ export default () => {
     update();
   };
 
-  $('#myModal').on('shown.bs.modal', function (e) {
+  $('#myModal').on('show.bs.modal', (e) => {
+    watchedState.process = 'showingModal';
     const contentID = e.relatedTarget.id;
     state.modalWindow.content = contentID;
-    const [ feedID, postID ] = contentID.split('::');
+    const [feedID, postID] = contentID.split('::');
     const currentPost = state.feeds
       .find((feed) => feed.id === Number(feedID))
       .posts
       .find((post) => post.id === Number(postID));
     elements.modalWindow.title.textContent = currentPost.title;
     elements.modalWindow.body.innerHTML = DOMPurify.sanitize(currentPost.description);
-    elements.modalWindow.button.addEventListener('click', (e) => {
-      window.location.href = currentPost.link;
-    })
+    elements.modalWindow.button.addEventListener('click', () => {
+      window.open(currentPost.link, '_blank');
+    });
+    currentPost.wasRead = true;
   });
-  $('#myModal').on('hide.bs.modal', function (e) {
+  $('#myModal').on('hide.bs.modal', () => {
+    watchedState.process = 'updating';
     elements.modalWindow.body.innerHTML = '';
   });
-
-  const handler = render(state, elements, i18nInstance);
-  const watchedState = onChange(state, handler);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -155,26 +158,31 @@ export default () => {
     }
     watchedState.process = 'sending'; //                      TRANSITION
     makeRequest(userUrl)
-      .then(parse)
+      .then((data) => parse(data, i18nInstance))
       .then((feed) => {
         feed.id = generateFeedId();
         feed.url = userUrl;
         feed.onUpdate = false;
-        feed.posts.map((post) => { 
+        feed.posts.forEach((post) => {
           post.id = generatePostId();
-          post.isNew = true;
+          post.wasRead = false;
         });
         state.feeds.push(feed);
         watchedState.process = 'filling'; //                  TRANSITION
         state.feeds.forEach((feed) => {
           if (feed.onUpdate === false) startUpdater(feed);
         });
-
-
       })
       .catch((err) => {
-          state.errors.webError = err.message;
-          watchedState.process = 'access fault'; //           TRANSITION
+        console.log(err);
+        switch (err.name) {
+          case 'parseError':
+            state.errors.webError = i18nInstance.t('statusBar.parseError');
+            break;
+          default:
+            state.errors.webError = i18nInstance.t('statusBar.webError');
+        }
+        watchedState.process = 'access fault';
       });
   });
 };

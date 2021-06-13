@@ -1,9 +1,4 @@
-import onChange from 'on-change';
-import $ from 'jquery';
-
-
-const { log } = console;
-const render = (state, elements, i18n) => (path, value) => {
+export default (state, elements, i18n) => (path, value) => {
   const renderList = (list) => {
     if (list.length === 0) return;
     elements.feedsContainer.innerHTML = '';
@@ -42,7 +37,6 @@ const render = (state, elements, i18n) => (path, value) => {
 
       feed.posts.forEach((post) => {
         const li = document.createElement('li');
-        // li.id = `feed.id/post.id`;
         li.classList.add('list-group-item');
         li.classList.add('d-flex',
           'justify-content-between',
@@ -51,6 +45,9 @@ const render = (state, elements, i18n) => (path, value) => {
         const a = document.createElement('a');
         a.href = post.link;
         a.textContent = post.title;
+        post.wasRead
+          ? a.classList.add('fw-normal', 'font-weight-normal')
+          : a.classList.add('fw-bold', 'font-weight-bold');
 
         const viewBtn = document.createElement('button');
         viewBtn.setAttribute('type', 'button');
@@ -68,7 +65,7 @@ const render = (state, elements, i18n) => (path, value) => {
     });
   };
 
-  const showValidationError = ({ input, button, errorDiv }, command = 'show') => {
+  const showValidationError = ({ input, errorDiv }, command = 'show') => {
     if (command === 'show') {
       errorDiv.textContent = state.errors.validationError;
 
@@ -100,7 +97,7 @@ const render = (state, elements, i18n) => (path, value) => {
     }
     div.textContent = text;
   };
-/*
+  /*
   const disableForm = (command = true) => {
     const { input, button } = elements;
     if (command === true) {
@@ -119,21 +116,23 @@ const render = (state, elements, i18n) => (path, value) => {
       console.log('process setted as filling');
       showStatus(i18n.t('statusBar.success'), 'success');
       renderList(state.feeds);
-      //disableForm(false);
+      // disableForm(false);
       elements.input.value = '';
       break;
     case 'sending':
-      //disableForm();
+      // disableForm();
       console.log('process setted as sending');
       showStatus(i18n.t('statusBar.trying'));
       showValidationError(elements, 'hide');
       break;
     case 'updating':
+      console.log('start update');
+      console.log(state.feeds);
       renderList(state.feeds);
       break;
     case 'access fault':
-      showStatus(i18n.t('statusBar.webError'), 'danger');
-      //disableForm(false);
+      showStatus(state.errors.webError, 'danger');
+      // disableForm(false);
       console.log('process setted as accesss fault');
       break;
     case 'validation fault':
@@ -144,8 +143,5 @@ const render = (state, elements, i18n) => (path, value) => {
       break;
     default:
       // Do nothing
-      ;
   }
 };
-
-export default render;
