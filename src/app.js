@@ -20,6 +20,7 @@ const validate = ({ feeds }, userUrl, i18n) => {
   try {
     validator.validateSync(userUrl);
   } catch (error) {
+    console.log(error.toJSON());
     return error.message;
   }
   const isAlreadyExist = !(feeds.every((feed) => feed.url !== userUrl));
@@ -27,7 +28,12 @@ const validate = ({ feeds }, userUrl, i18n) => {
   return '';
 };
 
-const useProxy = (url) => `https://hexlet-allorigins.herokuapp.com/get?disableCache=true&url=${encodeURIComponent(url)}`;
+const useProxy = (url) => {
+  const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get');
+  proxy.searchParams.set('disableCache', 'true');
+  proxy.searchParams.set('url', `${url}`);
+  return proxy.toString();
+};
 
 const createIdGenerator = () => {
   let num = 0;
@@ -39,6 +45,48 @@ const createIdGenerator = () => {
 
 const generateFeedId = createIdGenerator();
 const generatePostId = createIdGenerator();
+
+const runUpdater = (feed) => {
+  feed.onUpdate = true;
+  const update = () => {
+    window.setTimeout((link) => {
+      makeRequest(link)
+        .then((data) => parse(data, i18nInstance))
+        .then((news) => {
+          const uniqNews = news.posts.filter(
+            (item) => feed.posts.every((post) => post.link !== item.link)
+          );
+          if (uniqNews.length === 0) {
+            // no news
+          } else {
+            uniqNews.forEach((item) => {
+              item.id = generatePostId();
+              feed.posts.unshift(item);
+              watchedState.process = 'updating';
+              watchedState.process = '';
+            });
+          }
+          update(link);
+        }).catch((err) => {
+          feed.onUpdate = false;
+        });
+    }, 5000, feed.url);
+  };
+  update();
+};
+
+const makeRequest = (url) => axios.get(useProxy(url))
+  .catch((err) => console.log(err))
+  .then((serverResponce) => {
+    const { contents } = serverResponce.data;
+    if (contents === null) {
+      const error = new Error('cannot connect to server');
+      error.name = 'webAccessError';
+      throw error;
+    }
+    return contents;
+  });
+
 
 export default () => {
   const state = {
@@ -55,11 +103,12 @@ export default () => {
   };
 
   const i18nInstance = i18next.createInstance();
-  i18nInstance.init({
+
+  return  i18nInstance.init({
     lng: 'ru',
     debug: false,
     resources,
-  });
+  }).then(() => {
 
   const elements = {
     container: document.querySelector('.container'),
@@ -80,46 +129,6 @@ export default () => {
   const handler = render(state, elements, i18nInstance);
   const watchedState = onChange(state, handler);
 
-  const makeRequest = (url) => axios.get(useProxy(url))
-    .then((serverResponce) => {
-      const { contents } = serverResponce.data;
-      if (contents === null) {
-        const error = new Error('cannot connect to server');
-        error.name = 'webAccessError';
-        throw error;
-      }
-      return contents;
-    });
-
-  const runUpdater = (feed) => {
-    feed.onUpdate = true;
-
-    const update = () => {
-      window.setTimeout((link) => {
-        makeRequest(link)
-          .then((data) => parse(data, i18nInstance))
-          .then((news) => {
-            const uniqNews = news.posts.filter(
-              (item) => feed.posts.every((post) => post.link !== item.link)
-            );
-            if (uniqNews.length === 0) {
-              // no news
-            } else {
-              uniqNews.forEach((item) => {
-                item.id = generatePostId();
-                feed.posts.unshift(item);
-                watchedState.process = 'updating';
-                watchedState.process = '';
-              });
-            }
-            update(link);
-          }).catch((err) => {
-            feed.onUpdate = false;
-          });
-      }, 5000, feed.url);
-    };
-    update();
-  };
 
   $('#myModal').on('show.bs.modal', (e) => {
     watchedState.process = 'showingModal';
@@ -170,6 +179,7 @@ export default () => {
         });
       })
       .catch((err) => {
+        console.log(JSON.stringify(err));
         switch (err.name) {
           case 'parseError':
             state.errors.webError = i18nInstance.t('statusBar.parseError');
@@ -180,4 +190,5 @@ export default () => {
         watchedState.process = 'access fault';
       });
   });
+  }); // promise return 
 };
