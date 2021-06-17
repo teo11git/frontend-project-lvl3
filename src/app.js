@@ -20,7 +20,7 @@ const validate = ({ feeds }, userUrl, i18n) => {
   try {
     validator.validateSync(userUrl);
   } catch (error) {
-    console.log(error.toJSON());
+    console.log(error);
     return error.message;
   }
   const isAlreadyExist = !(feeds.every((feed) => feed.url !== userUrl));
