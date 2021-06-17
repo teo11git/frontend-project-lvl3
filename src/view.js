@@ -64,10 +64,18 @@ export default (state, elements, i18n) => (path, value) => {
       elements.postsContainer.appendChild(postsUl);
     });
   };
+  const updateErrorMessage = ({ errorDiv }) => {
+    console.log('updateed message');
+    errorDiv.textContent = i18n.t(
+      `validationMessages.${state.formState.validationError}`
+    );
+  };
 
   const showValidationError = ({ input, errorDiv }, command = 'show') => {
     if (command === 'show') {
-      errorDiv.textContent = state.errors.validationError;
+      //  errorDiv.textContent = i18n.t(
+      //    `validationMessages.${state.formState.validationError}`
+      //  );
 
       input.classList.add('is-invalid');
       input.classList.remove('border-primary');
@@ -93,25 +101,31 @@ export default (state, elements, i18n) => (path, value) => {
         div.classList.add('alert-danger');
         break;
       default:
-        div.classList.add('alert-info');
+      div.classList.add('alert-info');
     }
     div.textContent = text;
   };
-  /*
-  const disableForm = (command = true) => {
-    const { input, button } = elements;
-    if (command === true) {
-      input.setAttribute('disabled', true);
-      button.setAttribute('disabled', true);
-    }
-    if (command === false) {
-      input.removeAttribute('disabled');
-      button.removeAttribute('disabled');
-    }
-  };
-*/
 
+  console.log(path, value);
+
+  if (path === 'formState.validationError') {
+    updateErrorMessage(elements);
+  }
+
+  if (path === 'formState.validity') {
+    switch (value) {
+      case false:
+        updateErrorMessage(elements);
+        showValidationError(elements);
+        showStatus(i18n.t('statusBar.validationError'), 'danger');
+        break;
+      case true:
+        showValidationError(elements, 'hide');
+        break;
+    }
+  }
   switch (value) {
+      /*
     case 'filling':
       showStatus(i18n.t('statusBar.success'), 'success');
       renderList(state.feeds);
@@ -134,6 +148,7 @@ export default (state, elements, i18n) => (path, value) => {
       showStatus(i18n.t('statusBar.validationError'), 'danger');
       showValidationError(elements);
       break;
+    */
     default:
       // Do nothing
   }

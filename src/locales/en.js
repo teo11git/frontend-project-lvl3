@@ -5,8 +5,8 @@ export default {
     },
     validationMessages: {
       required: 'this is a required field',
-      url: 'this must be a valid URL',
-      allreadyExist: 'this URL allready exist',
+      mustBeUrl: 'this must be a valid URL',
+      alreadyExist: 'this URL allready exist',
     },
     statusBar: {
       success: 'News feed downloaded successfully.',

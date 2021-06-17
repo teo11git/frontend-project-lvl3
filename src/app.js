@@ -9,23 +9,15 @@ import render from './view.js';
 import parse from './parser.js';
 
 const validate = ({ feeds }, userUrl, i18n) => {
-  yup.setLocale({
-    mixed: {
-      default: 'Validation error',
-      required: i18n.t('validationMessages.required'),
-      url: i18n.t('validationMessages.url'),
-    },
-  });
-  const validator = yup.string().required().url();
+  const validator = yup.string().required().url()
+    .notOneOf(feeds.map(({ url }) => url));
   try {
     validator.validateSync(userUrl);
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
     return error.message;
   }
-  const isAlreadyExist = !(feeds.every((feed) => feed.url !== userUrl));
-  if (isAlreadyExist) return 'this URL allready exist';
-  return '';
+  return null;
 };
 
 const useProxy = (url) => {
@@ -91,8 +83,17 @@ const makeRequest = (url) => axios.get(useProxy(url))
 export default () => {
   const state = {
     currentLang: 'ru',
-    process: 'filling',
+    formState: {
+      validity: true,
+      validationError: null,
+    },
+    feedRequest: {
+      process: 'preparation',
+      error: null,
+    },
+    // process: 'filling',
     feeds: [],
+    posts: [],
     errors: {
       webError: '',
       validationError: '',
@@ -109,6 +110,16 @@ export default () => {
     debug: false,
     resources,
   }).then(() => {
+
+    yup.setLocale({
+      mixed: {
+        required: 'required',
+        notOneOf: 'alreadyExist',
+      },
+      string: {
+        url: 'mustBeUrl',
+      },
+    });
 
   const elements = {
     container: document.querySelector('.container'),
@@ -155,12 +166,13 @@ export default () => {
     e.preventDefault();
     const userUrl = elements.input.value;
     const validationResult = validate(state, userUrl, i18nInstance);
-    if (validationResult !== '') {
-      state.errors.validationError = validationResult;
-      watchedState.process = 'validation fault'; //           TRANSITION
-      watchedState.process = ''; //                           TRANSITION
+    if (validationResult !== null) {
+      watchedState.formState.validationError = validationResult;
+      console.log('validation fault!!');
+      watchedState.formState.validity = false; //           TRANSITION
       return;
     }
+    watchedState.formState.validity = true;
     watchedState.process = 'sending'; //                      TRANSITION
     makeRequest(userUrl)
       .then((data) => parse(data, i18nInstance))
