@@ -2,7 +2,7 @@ import url from 'url';
 
 const isValidRss = (dom) => dom.documentElement.nodeName === 'rss';
 
-export default (data, i18n) => {
+export default (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
 
   if (!isValidRss(XMLdocument)) {
@@ -17,9 +17,9 @@ export default (data, i18n) => {
     description: item.querySelector('description')?.textContent ?? '',
     link: item.querySelector('link').textContent,
   }));
-  return {
+  const feed = {
     domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
     description: XMLdocument.querySelector('description').textContent,
-    posts,
   };
+  return {feed, posts};
 };

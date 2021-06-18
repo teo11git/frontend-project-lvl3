@@ -1,6 +1,6 @@
 export default (state, elements, i18n) => (path, value) => {
-  const renderList = (list) => {
-    if (list.length === 0) return;
+  const renderList = ({ feeds, posts }) => {
+    if (feeds.length === 0) return;
     elements.feedsContainer.innerHTML = '';
     elements.postsContainer.innerHTML = '';
 
@@ -22,7 +22,7 @@ export default (state, elements, i18n) => (path, value) => {
     postsUl.classList.add('mt-2');
     postsUl.classList.add('list-group', 'list-group-flush');
 
-    list.forEach((feed) => {
+    feeds.forEach((feed) => {
       const feedTerm = document.createElement('dt');
       feedTerm.classList.add('col-3');
       feedTerm.textContent = feed.domain;
@@ -35,7 +35,9 @@ export default (state, elements, i18n) => (path, value) => {
       feedsDl.appendChild(feedDefinition);
       elements.feedsContainer.appendChild(feedsDl);
 
-      feed.posts.forEach((post) => {
+      posts
+        .filter((post) => post.feedId === feed.id)
+        .forEach((post) => {
         const li = document.createElement('li');
         li.classList.add('list-group-item');
         li.classList.add('d-flex',
@@ -45,7 +47,7 @@ export default (state, elements, i18n) => (path, value) => {
         const a = document.createElement('a');
         a.href = post.link;
         a.textContent = post.title;
-        post.wasRead
+        state.ui.postsWasRead.includes(post.id)
           ? a.classList.add('fw-normal', 'font-weight-normal')
           : a.classList.add('fw-bold', 'font-weight-bold');
 
@@ -53,7 +55,7 @@ export default (state, elements, i18n) => (path, value) => {
         viewBtn.setAttribute('type', 'button');
         viewBtn.setAttribute('data-toggle', 'modal');
         viewBtn.setAttribute('data-target', '#myModal');
-        viewBtn.id = `${feed.id}::${post.id}`;
+        viewBtn.dataset.postId = `${post.id}`;
         viewBtn.classList.add('btn', 'btn-primary', 'readBtn');
         viewBtn.textContent = i18n.t('commonView.readButton');
 
@@ -102,7 +104,7 @@ export default (state, elements, i18n) => (path, value) => {
     div.textContent = text;
   };
 
-  console.log(path, value);
+  // console.log(path, value);
 
   if (path === 'formState.validationError') {
     updateErrorMessage(elements);
@@ -130,7 +132,7 @@ export default (state, elements, i18n) => (path, value) => {
         console.log('got it');
         showStatus(i18n.t('statusBar.success'), 'success');
         elements.input.value = '';
-        renderList(state.feeds);
+        renderList(state);
         break;
       case 'failing':
         showStatus(
@@ -139,5 +141,12 @@ export default (state, elements, i18n) => (path, value) => {
         );
         break;
     }
+  }
+  if (path === 'posts') {
+    console.log('render new post!');
+    renderList(state);
+  }
+  if (path === 'ui.postsWasRead') {
+    renderList(state);
   }
 };

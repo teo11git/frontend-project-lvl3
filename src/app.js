@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import axios from 'axios';
+import { uniqueId, differenceWith } from 'lodash';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import i18next from 'i18next';
@@ -27,41 +28,28 @@ const useProxy = (url) => {
   return proxy.toString();
 };
 
-const createIdGenerator = () => {
-  let num = 0;
-  return () => {
-    num += 1;
-    return num;
-  };
-};
-
-const generateFeedId = createIdGenerator();
-const generatePostId = createIdGenerator();
-
-const runUpdater = (feed) => {
-  feed.onUpdate = true;
+const runUpdater = (state, watchedState, feed) => {
+  const feedID = feed.id;
   const update = () => {
-    window.setTimeout((link) => {
+    setTimeout((link) => {
+      console.log('update!');
       makeRequest(link)
-        .then((data) => parse(data, i18nInstance))
-        .then((news) => {
-          const uniqNews = news.posts.filter(
-            (item) => feed.posts.every((post) => post.link !== item.link),
-          );
+        .then((data) => parse(data))
+        .then(({ feed, posts }) => {
+          const uniqNews = differenceWith(posts, state.posts, (p1, p2) => p1.link === p2.link);
           if (uniqNews.length === 0) {
             // no news
           } else {
+            console.log(uniqNews);
             uniqNews.forEach((item) => {
-              item.id = generatePostId();
-              feed.posts.unshift(item);
-              watchedState.process = 'updating';
-              watchedState.process = '';
-            });
+              item.id = uniqueId();
+              item.feedId = feedID;
+              watchedState.posts.unshift(item);
+           });
+          
           }
           update(link);
-        }).catch((err) => {
-          feed.onUpdate = false;
-        });
+        }).catch(console.error);
     }, 5000, feed.url);
   };
   update();
@@ -91,15 +79,10 @@ export default () => {
       process: 'preparation',
       error: null,
     },
-    // process: 'filling',
     feeds: [],
     posts: [],
-    errors: {
-      webError: '',
-      validationError: '',
-    },
-    modalWindow: {
-      content: '1::1', // this code means feed id and post id
+    ui: {
+      postsWasRead: [],
     },
   };
 
@@ -140,24 +123,21 @@ export default () => {
     const watchedState = onChange(state, handler);
 
     $('#myModal').on('show.bs.modal', (e) => {
-      watchedState.process = 'showingModal';
-      const contentID = e.relatedTarget.id;
-      state.modalWindow.content = contentID;
-      const [feedID, postID] = contentID.split('::');
-      const currentPost = state.feeds
-        .find((feed) => feed.id === Number(feedID))
-        .posts
-        .find((post) => post.id === Number(postID));
+      const contentID = e.relatedTarget.dataset.postId;
+      const currentPost = state.posts.find((post) => post.id === contentID);
       elements.modalWindow.title.textContent = currentPost.title;
       elements.modalWindow.body.innerHTML = DOMPurify.sanitize(currentPost.description);
-      elements.modalWindow.button.addEventListener('click', () => {
-        window.open(currentPost.link, '_blank');
-      });
-      currentPost.wasRead = true;
+      elements.modalWindow.button.dataset.postID = contentID;
+      const { postsWasRead } = state.ui;
+      if (!postsWasRead.includes(contentID)) watchedState.ui.postsWasRead.push(contentID);
     });
     $('#myModal').on('hide.bs.modal', () => {
-      watchedState.process = 'updating';
       elements.modalWindow.body.innerHTML = '';
+    });
+    elements.modalWindow.button.addEventListener('click', (e) => {
+      const neededID = e.target.dataset.postID;
+      const { link } = state.posts.find((post) => post.id === neededID );
+      window.open(link, '_blank');
     });
 
     elements.form.addEventListener('submit', (e) => {
@@ -166,35 +146,35 @@ export default () => {
       const validationResult = validate(state, userUrl, i18nInstance);
       if (validationResult !== null) {
         watchedState.formState.validationError = validationResult;
-        console.log('validation fault!!');
         watchedState.formState.validity = false; //           TRANSITION
         return;
       }
       watchedState.formState.validity = true;
       watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
       makeRequest(userUrl)
-        .then((data) => parse(data, i18nInstance))
-        .then((feed) => {
-          feed.id = generateFeedId();
+        .then((data) => parse(data))
+        .then(({ feed, posts }) => {
+          feed.id = uniqueId();
           feed.url = userUrl;
-          feed.onUpdate = false;
-          feed.posts.forEach((post) => {
-            post.id = generatePostId();
-            post.wasRead = false;
+          posts.forEach((post) => {
+            post.feedId = feed.id;
+            post.id = uniqueId();
+            state.posts.push(post);
           });
           state.feeds.push(feed);
+          runUpdater(state, watchedState, feed);
           watchedState.feedRequest.process = 'getting'; //                  TRANSITION
           state.feeds.forEach((feed) => {
             if (feed.onUpdate === false) runUpdater(feed);
           });
         })
         .catch((err) => {
+          console.log(err);
           if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
 
           if (err.isParseError) watchedState.feedRequest.error = 'parseError';
 
           watchedState.feedRequest.process = 'failing';
-          console.log(state.feedRequest);
         });
     });
   }); // promise return
