@@ -34,9 +34,8 @@ export default (state, elements, i18n) => (path, value) => {
 
       feedsDl.appendChild(feedDefinition);
       elements.feedsContainer.appendChild(feedsDl);
-
+    });
       posts
-        .filter((post) => post.feedId === feed.id)
         .forEach((post) => {
         const li = document.createElement('li');
         li.classList.add('list-group-item');
@@ -64,7 +63,6 @@ export default (state, elements, i18n) => (path, value) => {
         postsUl.appendChild(li);
       });
       elements.postsContainer.appendChild(postsUl);
-    });
   };
   const updateErrorMessage = ({ errorDiv }) => {
     console.log('updateed message');

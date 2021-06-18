@@ -40,7 +40,6 @@ const runUpdater = (state, watchedState, feed) => {
           if (uniqNews.length === 0) {
             // no news
           } else {
-            console.log(uniqNews);
             uniqNews.forEach((item) => {
               item.id = uniqueId();
               item.feedId = feedID;
@@ -164,10 +163,7 @@ export default () => {
           state.feeds.push(feed);
           runUpdater(state, watchedState, feed);
           watchedState.feedRequest.process = 'getting'; //                  TRANSITION
-          state.feeds.forEach((feed) => {
-            if (feed.onUpdate === false) runUpdater(feed);
-          });
-        })
+       })
         .catch((err) => {
           console.log(err);
           if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
