@@ -73,10 +73,6 @@ export default (state, elements, i18n) => (path, value) => {
 
   const showValidationError = ({ input, errorDiv }, command = 'show') => {
     if (command === 'show') {
-      //  errorDiv.textContent = i18n.t(
-      //    `validationMessages.${state.formState.validationError}`
-      //  );
-
       input.classList.add('is-invalid');
       input.classList.remove('border-primary');
       input.classList.add('border-danger');
@@ -124,32 +120,23 @@ export default (state, elements, i18n) => (path, value) => {
         break;
     }
   }
-  switch (value) {
-      /*
-    case 'filling':
-      showStatus(i18n.t('statusBar.success'), 'success');
-      renderList(state.feeds);
-      // disableForm(false);
-      elements.input.value = '';
-      break;
-    case 'sending':
-      // disableForm();
-      showStatus(i18n.t('statusBar.trying'));
-      showValidationError(elements, 'hide');
-      break;
-    case 'updating':
-      renderList(state.feeds);
-      break;
-    case 'access fault':
-      showStatus(state.errors.webError, 'danger');
-      // disableForm(false);
-      break;
-    case 'validation fault':
-      showStatus(i18n.t('statusBar.validationError'), 'danger');
-      showValidationError(elements);
-      break;
-    */
-    default:
-      // Do nothing
+  if (path === 'feedRequest.process') {
+    switch (value) {
+      case 'requesting':
+        console.log('trying');
+        showStatus(i18n.t('statusBar.trying'));
+        break;
+      case 'getting':
+        console.log('got it');
+        showStatus(i18n.t('statusBar.success'), 'success');
+        elements.input.value = '';
+        renderList(state.feeds);
+        break;
+      case 'failing':
+        showStatus(
+          i18n.t(`statusBar.${state.feedRequest.error}`),
+          'danger');
+        break; 
+    }
   }
 };

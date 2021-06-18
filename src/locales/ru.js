@@ -11,7 +11,7 @@ export default {
     statusBar: {
       success: 'RSS успешно загружен',
       trying: 'Загрузка новостей...',
-      webError: 'Ошибка сети',
+      networkError: 'Ошибка сети',
       parseError: 'Ресурс не содержит валидный RSS',
       validationError: 'Пожалуйста проверте адрес',
     },

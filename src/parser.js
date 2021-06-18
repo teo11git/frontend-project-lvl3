@@ -7,8 +7,8 @@ export default (data, i18n) => {
 
   if (!isValidRss(XMLdocument)) {
     const error = new Error();
-    error.name = 'parseError';
-    error.message = i18n.t('statusBar.parseError');
+    error.isParseError = true;
+    error.message = 'parseError';
     throw error;
   }
   const items = XMLdocument.querySelectorAll('item');

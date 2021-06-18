@@ -68,15 +68,16 @@ const runUpdater = (feed) => {
 };
 
 const makeRequest = (url) => axios.get(useProxy(url))
-  .catch((err) => console.log(err))
   .then((serverResponce) => {
     const { contents } = serverResponce.data;
     if (contents === null) {
-      const error = new Error('cannot connect to server');
-      error.name = 'webAccessError';
-      throw error;
+      throw new Error('webAccessError');
     }
     return contents;
+  }).catch((err) => {
+    const error = new Error('networkError')
+    error.isNetworkError = true;
+    throw error;
   });
 
 
@@ -173,7 +174,7 @@ export default () => {
       return;
     }
     watchedState.formState.validity = true;
-    watchedState.process = 'sending'; //                      TRANSITION
+    watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
     makeRequest(userUrl)
       .then((data) => parse(data, i18nInstance))
       .then((feed) => {
@@ -185,21 +186,20 @@ export default () => {
           post.wasRead = false;
         });
         state.feeds.push(feed);
-        watchedState.process = 'filling'; //                  TRANSITION
+        watchedState.feedRequest.process = 'getting'; //                  TRANSITION
         state.feeds.forEach((feed) => {
           if (feed.onUpdate === false) runUpdater(feed);
         });
       })
       .catch((err) => {
-        console.log(JSON.stringify(err));
-        switch (err.name) {
-          case 'parseError':
-            state.errors.webError = i18nInstance.t('statusBar.parseError');
-            break;
-          default:
-            state.errors.webError = i18nInstance.t('statusBar.webError');
-        }
-        watchedState.process = 'access fault';
+        if (err.isNetworkError)
+          watchedState.feedRequest.error = 'networkError';
+        
+        if (err.isParseError)
+          watchedState.feedRequest.error = 'parseError';
+      
+        watchedState.feedRequest.process = 'failing';
+        console.log(state.feedRequest);
       });
   });
   }); // promise return 
