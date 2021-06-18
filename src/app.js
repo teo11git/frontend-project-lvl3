@@ -46,7 +46,7 @@ const runUpdater = (feed) => {
         .then((data) => parse(data, i18nInstance))
         .then((news) => {
           const uniqNews = news.posts.filter(
-            (item) => feed.posts.every((post) => post.link !== item.link)
+            (item) => feed.posts.every((post) => post.link !== item.link),
           );
           if (uniqNews.length === 0) {
             // no news
@@ -75,11 +75,10 @@ const makeRequest = (url) => axios.get(useProxy(url))
     }
     return contents;
   }).catch((err) => {
-    const error = new Error('networkError')
+    const error = new Error('networkError');
     error.isNetworkError = true;
     throw error;
   });
-
 
 export default () => {
   const state = {
@@ -106,12 +105,11 @@ export default () => {
 
   const i18nInstance = i18next.createInstance();
 
-  return  i18nInstance.init({
+  return i18nInstance.init({
     lng: 'ru',
     debug: false,
     resources,
   }).then(() => {
-
     yup.setLocale({
       mixed: {
         required: 'required',
@@ -122,85 +120,82 @@ export default () => {
       },
     });
 
-  const elements = {
-    container: document.querySelector('.container'),
-    statusContainer: document.querySelector('#status'),
-    feedsContainer: document.querySelector('.feeds'),
-    postsContainer: document.querySelector('.posts'),
-    form: document.querySelector('form'),
-    button: document.querySelector('button'),
-    input: document.querySelector('input'),
-    errorDiv: document.querySelector('.invalid-feedback'),
-    modalWindow: {
-      title: document.querySelector('.modal-title'),
-      body: document.querySelector('.modal-body'),
-      button: document.querySelector('.readMoreBtn'),
-    },
-  };
+    const elements = {
+      container: document.querySelector('.container'),
+      statusContainer: document.querySelector('#status'),
+      feedsContainer: document.querySelector('.feeds'),
+      postsContainer: document.querySelector('.posts'),
+      form: document.querySelector('form'),
+      button: document.querySelector('button'),
+      input: document.querySelector('input'),
+      errorDiv: document.querySelector('.invalid-feedback'),
+      modalWindow: {
+        title: document.querySelector('.modal-title'),
+        body: document.querySelector('.modal-body'),
+        button: document.querySelector('.readMoreBtn'),
+      },
+    };
 
-  const handler = render(state, elements, i18nInstance);
-  const watchedState = onChange(state, handler);
+    const handler = render(state, elements, i18nInstance);
+    const watchedState = onChange(state, handler);
 
-
-  $('#myModal').on('show.bs.modal', (e) => {
-    watchedState.process = 'showingModal';
-    const contentID = e.relatedTarget.id;
-    state.modalWindow.content = contentID;
-    const [feedID, postID] = contentID.split('::');
-    const currentPost = state.feeds
-      .find((feed) => feed.id === Number(feedID))
-      .posts
-      .find((post) => post.id === Number(postID));
-    elements.modalWindow.title.textContent = currentPost.title;
-    elements.modalWindow.body.innerHTML = DOMPurify.sanitize(currentPost.description);
-    elements.modalWindow.button.addEventListener('click', () => {
-      window.open(currentPost.link, '_blank');
-    });
-    currentPost.wasRead = true;
-  });
-  $('#myModal').on('hide.bs.modal', () => {
-    watchedState.process = 'updating';
-    elements.modalWindow.body.innerHTML = '';
-  });
-
-  elements.form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const userUrl = elements.input.value;
-    const validationResult = validate(state, userUrl, i18nInstance);
-    if (validationResult !== null) {
-      watchedState.formState.validationError = validationResult;
-      console.log('validation fault!!');
-      watchedState.formState.validity = false; //           TRANSITION
-      return;
-    }
-    watchedState.formState.validity = true;
-    watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
-    makeRequest(userUrl)
-      .then((data) => parse(data, i18nInstance))
-      .then((feed) => {
-        feed.id = generateFeedId();
-        feed.url = userUrl;
-        feed.onUpdate = false;
-        feed.posts.forEach((post) => {
-          post.id = generatePostId();
-          post.wasRead = false;
-        });
-        state.feeds.push(feed);
-        watchedState.feedRequest.process = 'getting'; //                  TRANSITION
-        state.feeds.forEach((feed) => {
-          if (feed.onUpdate === false) runUpdater(feed);
-        });
-      })
-      .catch((err) => {
-        if (err.isNetworkError)
-          watchedState.feedRequest.error = 'networkError';
-        
-        if (err.isParseError)
-          watchedState.feedRequest.error = 'parseError';
-      
-        watchedState.feedRequest.process = 'failing';
-        console.log(state.feedRequest);
+    $('#myModal').on('show.bs.modal', (e) => {
+      watchedState.process = 'showingModal';
+      const contentID = e.relatedTarget.id;
+      state.modalWindow.content = contentID;
+      const [feedID, postID] = contentID.split('::');
+      const currentPost = state.feeds
+        .find((feed) => feed.id === Number(feedID))
+        .posts
+        .find((post) => post.id === Number(postID));
+      elements.modalWindow.title.textContent = currentPost.title;
+      elements.modalWindow.body.innerHTML = DOMPurify.sanitize(currentPost.description);
+      elements.modalWindow.button.addEventListener('click', () => {
+        window.open(currentPost.link, '_blank');
       });
-  });
-  }); // promise return 
+      currentPost.wasRead = true;
+    });
+    $('#myModal').on('hide.bs.modal', () => {
+      watchedState.process = 'updating';
+      elements.modalWindow.body.innerHTML = '';
+    });
+
+    elements.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userUrl = elements.input.value;
+      const validationResult = validate(state, userUrl, i18nInstance);
+      if (validationResult !== null) {
+        watchedState.formState.validationError = validationResult;
+        console.log('validation fault!!');
+        watchedState.formState.validity = false; //           TRANSITION
+        return;
+      }
+      watchedState.formState.validity = true;
+      watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
+      makeRequest(userUrl)
+        .then((data) => parse(data, i18nInstance))
+        .then((feed) => {
+          feed.id = generateFeedId();
+          feed.url = userUrl;
+          feed.onUpdate = false;
+          feed.posts.forEach((post) => {
+            post.id = generatePostId();
+            post.wasRead = false;
+          });
+          state.feeds.push(feed);
+          watchedState.feedRequest.process = 'getting'; //                  TRANSITION
+          state.feeds.forEach((feed) => {
+            if (feed.onUpdate === false) runUpdater(feed);
+          });
+        })
+        .catch((err) => {
+          if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
+
+          if (err.isParseError) watchedState.feedRequest.error = 'parseError';
+
+          watchedState.feedRequest.process = 'failing';
+          console.log(state.feedRequest);
+        });
+    });
+  }); // promise return
 };

@@ -67,7 +67,7 @@ export default (state, elements, i18n) => (path, value) => {
   const updateErrorMessage = ({ errorDiv }) => {
     console.log('updateed message');
     errorDiv.textContent = i18n.t(
-      `validationMessages.${state.formState.validationError}`
+      `validationMessages.${state.formState.validationError}`,
     );
   };
 
@@ -97,7 +97,7 @@ export default (state, elements, i18n) => (path, value) => {
         div.classList.add('alert-danger');
         break;
       default:
-      div.classList.add('alert-info');
+        div.classList.add('alert-info');
     }
     div.textContent = text;
   };
@@ -135,8 +135,9 @@ export default (state, elements, i18n) => (path, value) => {
       case 'failing':
         showStatus(
           i18n.t(`statusBar.${state.feedRequest.error}`),
-          'danger');
-        break; 
+          'danger',
+        );
+        break;
     }
   }
 };
