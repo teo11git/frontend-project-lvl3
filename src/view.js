@@ -1,3 +1,6 @@
+/* eslint-disable no-param-reassign */
+/* eslint no-unused-expressions: ["error", { allowTernary: true }] */
+
 export default (state, elements, i18n) => (path, value) => {
   const renderList = ({ feeds, posts }) => {
     if (feeds.length === 0) return;
@@ -35,8 +38,8 @@ export default (state, elements, i18n) => (path, value) => {
       feedsDl.appendChild(feedDefinition);
       elements.feedsContainer.appendChild(feedsDl);
     });
-      posts
-        .forEach((post) => {
+    posts
+      .forEach((post) => {
         const li = document.createElement('li');
         li.classList.add('list-group-item');
         li.classList.add('d-flex',
@@ -62,7 +65,7 @@ export default (state, elements, i18n) => (path, value) => {
         li.appendChild(viewBtn);
         postsUl.appendChild(li);
       });
-      elements.postsContainer.appendChild(postsUl);
+    elements.postsContainer.appendChild(postsUl);
   };
   const updateErrorMessage = ({ errorDiv }) => {
     console.log('updateed message');
@@ -71,7 +74,7 @@ export default (state, elements, i18n) => (path, value) => {
     );
   };
 
-  const showValidationError = ({ input, errorDiv }, command = 'show') => {
+  const showValidationError = ({ input }, command = 'show') => {
     if (command === 'show') {
       input.classList.add('is-invalid');
       input.classList.remove('border-primary');
@@ -102,8 +105,6 @@ export default (state, elements, i18n) => (path, value) => {
     div.textContent = text;
   };
 
-  // console.log(path, value);
-
   if (path === 'formState.validationError') {
     updateErrorMessage(elements);
   }
@@ -118,6 +119,7 @@ export default (state, elements, i18n) => (path, value) => {
       case true:
         showValidationError(elements, 'hide');
         break;
+      default:
     }
   }
   if (path === 'feedRequest.process') {
@@ -138,6 +140,7 @@ export default (state, elements, i18n) => (path, value) => {
           'danger',
         );
         break;
+      default:
     }
   }
   if (path === 'posts') {

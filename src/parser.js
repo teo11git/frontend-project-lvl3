@@ -1,11 +1,11 @@
 import url from 'url';
 
-const isValidRss = (dom) => dom.documentElement.nodeName === 'rss';
+const isValidRss = (dom) => !(dom.querySelector('parsererror'));
 
 export default (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
 
-  if (!isValidRss(XMLdocument)) {
+  if (isValidRss(XMLdocument) === false) {
     const error = new Error();
     error.isParseError = true;
     error.message = 'parseError';
@@ -21,5 +21,5 @@ export default (data) => {
     domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
     description: XMLdocument.querySelector('description').textContent,
   };
-  return {feed, posts};
+  return { feed, posts };
 };

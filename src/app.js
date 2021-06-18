@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import $ from 'jquery';
 import axios from 'axios';
 import { uniqueId, differenceWith } from 'lodash';
@@ -9,8 +10,11 @@ import resources from './locales';
 import render from './view.js';
 import parse from './parser.js';
 
-const validate = ({ feeds }, userUrl, i18n) => {
-  const validator = yup.string().required().url()
+const validate = ({ feeds }, userUrl) => {
+  const validator = yup
+    .string()
+    .required()
+    .url()
     .notOneOf(feeds.map(({ url }) => url));
   try {
     validator.validateSync(userUrl);
@@ -28,14 +32,26 @@ const useProxy = (url) => {
   return proxy.toString();
 };
 
+const makeRequest = (url) => axios.get(useProxy(url))
+  .then((serverResponce) => {
+    if (serverResponce.data.status.error) {
+      throw new Error('RequestError');
+    }
+    return serverResponce.data.contents;
+  }).catch(() => {
+    const error = new Error('networkError');
+    error.isNetworkError = true;
+    throw error;
+  });
+
 const runUpdater = (state, watchedState, feed) => {
   const feedID = feed.id;
+
   const update = () => {
     setTimeout((link) => {
-      console.log('update!');
       makeRequest(link)
         .then((data) => parse(data))
-        .then(({ feed, posts }) => {
+        .then(({ posts }) => {
           const uniqNews = differenceWith(posts, state.posts, (p1, p2) => p1.link === p2.link);
           if (uniqNews.length === 0) {
             // no news
@@ -44,8 +60,7 @@ const runUpdater = (state, watchedState, feed) => {
               item.id = uniqueId();
               item.feedId = feedID;
               watchedState.posts.unshift(item);
-           });
-          
+            });
           }
           update(link);
         }).catch(console.error);
@@ -53,19 +68,6 @@ const runUpdater = (state, watchedState, feed) => {
   };
   update();
 };
-
-const makeRequest = (url) => axios.get(useProxy(url))
-  .then((serverResponce) => {
-    const { contents } = serverResponce.data;
-    if (contents === null) {
-      throw new Error('webAccessError');
-    }
-    return contents;
-  }).catch((err) => {
-    const error = new Error('networkError');
-    error.isNetworkError = true;
-    throw error;
-  });
 
 export default () => {
   const state = {
@@ -135,14 +137,15 @@ export default () => {
     });
     elements.modalWindow.button.addEventListener('click', (e) => {
       const neededID = e.target.dataset.postID;
-      const { link } = state.posts.find((post) => post.id === neededID );
+      const { link } = state.posts.find((post) => post.id === neededID);
       window.open(link, '_blank');
     });
 
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const userUrl = elements.input.value;
-      const validationResult = validate(state, userUrl, i18nInstance);
+      const formData = new FormData(e.target);
+      const userUrl = formData.get('url');
+      const validationResult = validate(state, userUrl);
       if (validationResult !== null) {
         watchedState.formState.validationError = validationResult;
         watchedState.formState.validity = false; //           TRANSITION
@@ -163,7 +166,7 @@ export default () => {
           state.feeds.push(feed);
           runUpdater(state, watchedState, feed);
           watchedState.feedRequest.process = 'getting'; //                  TRANSITION
-       })
+        })
         .catch((err) => {
           console.log(err);
           if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
