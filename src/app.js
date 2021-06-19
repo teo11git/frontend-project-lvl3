@@ -169,7 +169,7 @@ export default () => {
           watchedState.feedRequest.process = 'getting'; //                  TRANSITION
         })
         .catch((err) => {
-          // console.log(err);
+          console.log(err);
           if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
 
           if (err.isParseError) watchedState.feedRequest.error = 'parseError';
