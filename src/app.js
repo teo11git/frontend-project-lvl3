@@ -37,7 +37,9 @@ const makeRequest = (url) => axios.get(useProxy(url))
       throw new Error('RequestError');
     }
     return serverResponce.data.contents;
-  }).catch(() => {
+  }).catch((err) => {
+    console.log('from network error');
+    console.log(err);
     const error = new Error('networkError');
     error.isNetworkError = true;
     throw error;
