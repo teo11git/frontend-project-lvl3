@@ -33,7 +33,8 @@ const useProxy = (url) => {
 
 const makeRequest = (url) => axios.get(useProxy(url))
   .then((serverResponce) => {
-    if (serverResponce.data.status.error) {
+    if (
+      (serverResponce.data.status?.error) {
       throw new Error('RequestError');
     }
     return serverResponce.data.contents;
