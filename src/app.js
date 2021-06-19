@@ -69,6 +69,7 @@ const runUpdater = (state, watchedState, feed) => {
 };
 
 export default () => {
+  console.log('start app!!');
   const state = {
     currentLang: 'ru',
     formState: {
@@ -93,6 +94,7 @@ export default () => {
     debug: false,
     resources,
   }).then(() => {
+
     yup.setLocale({
       mixed: {
         required: 'required',
