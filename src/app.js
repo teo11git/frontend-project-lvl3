@@ -134,6 +134,7 @@ export default () => {
     $('#myModal').on('hide.bs.modal', () => {
       elements.modalWindow.body.innerHTML = '';
     });
+    console.log(elements);
     elements.modalWindow.button.addEventListener('click', (e) => {
       const neededID = e.target.dataset.postID;
       const { link } = state.posts.find((post) => post.id === neededID);
