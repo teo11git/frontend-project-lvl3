@@ -74,11 +74,14 @@ export default (state, elements, i18n) => (path, value) => {
     );
   };
 
-  const disableInput = (elements, command = true) => {
-    if (command === false)
+  const disableElements = (elements, command = true) => {
+    if (command === false) {
       elements.input.removeAttribute('readonly');
+      elements.button.removeAttribute('disable');
+    }
     if (command === true)
       elements.input.setAttribute('readonly', true);
+      elements.button.setAttribute('disable', true);
   };
   const showValidationError = ({ input }, command = 'show') => {
     if (command === 'show') {
@@ -139,11 +142,11 @@ export default (state, elements, i18n) => (path, value) => {
         console.log('got it');
         showStatus(i18n.t('statusBar.success'), 'success');
         elements.input.value = '';
-        disableInput(elements, false);
+        disableElements(elements, false);
         renderList(state);
         break;
       case 'failing':
-        disableInput(elements, false);
+        disableElements(elements, false);
         showStatus(
           i18n.t(`statusBar.${state.feedRequest.error}`),
           'danger',
