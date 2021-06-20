@@ -68,7 +68,6 @@ export default (state, elements, i18n) => (path, value) => {
     elements.postsContainer.appendChild(postsUl);
   };
   const updateErrorMessage = ({ errorDiv }) => {
-    console.log('updateed message');
     errorDiv.textContent = i18n.t(
       `validationMessages.${state.formState.validationError}`,
     );
@@ -135,12 +134,10 @@ export default (state, elements, i18n) => (path, value) => {
   if (path === 'feedRequest.process') {
     switch (value) {
       case 'requesting':
-        console.log('trying');
         disableElements(elements);
         showStatus(i18n.t('statusBar.trying'));
         break;
       case 'getting':
-        console.log('got it');
         showStatus(i18n.t('statusBar.success'), 'success');
         elements.input.value = '';
         disableElements(elements, false);
@@ -157,7 +154,6 @@ export default (state, elements, i18n) => (path, value) => {
     }
   }
   if (path === 'posts') {
-    console.log('render new post!');
     renderList(state);
   }
   if (path === 'ui.postsWasRead') {

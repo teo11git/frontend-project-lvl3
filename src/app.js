@@ -37,11 +37,8 @@ const makeRequest = (url) => axios.get(useProxy(url, true))
     if (serverResponce.data.status?.error) {
       throw new Error('RequestError');
     }
-    console.log(serverResponce.data.contents);
     return serverResponce.data.contents;
   }).catch((err) => {
-    console.log('from network error');
-    console.log(err);
     const error = new Error('networkError');
     error.isNetworkError = true;
     throw error;
@@ -73,7 +70,6 @@ const runUpdater = (state, watchedState, feed) => {
 };
 
 export default () => {
-  console.log('start app!!');
   const state = {
     currentLang: 'ru',
     formState: {
@@ -123,7 +119,6 @@ export default () => {
         button: document.querySelector('.readMoreBtn'),
       },
     };
-    console.log(elements);
     const handler = render(state, elements, i18nInstance);
     const watchedState = onChange(state, handler);
 
@@ -149,7 +144,6 @@ export default () => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const userUrl = formData.get('url');
-      console.log(`USER URL IS ${userUrl}`);
       const validationResult = validate(state, userUrl);
       if (validationResult !== null) {
         watchedState.formState.validationError = validationResult;
@@ -173,7 +167,6 @@ export default () => {
           watchedState.feedRequest.process = 'getting'; //                  TRANSITION
         })
         .catch((err) => {
-          console.log(err);
           if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
 
           if (err.isParseError) watchedState.feedRequest.error = 'parseError';
