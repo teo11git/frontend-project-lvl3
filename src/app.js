@@ -98,7 +98,6 @@ export default () => {
     debug: false,
     resources,
   }).then(() => {
-
     yup.setLocale({
       mixed: {
         required: 'required',
