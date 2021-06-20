@@ -14,7 +14,7 @@ export default (data) => {
   const items = XMLdocument.querySelectorAll('item');
   const posts = [...items].map((item) => ({
     title: item.querySelector('title').textContent,
-    description: item.querySelector('description')?.textContent ?? '',
+    description: item.querySelector('title')?.textContent ?? '',
     link: item.querySelector('link').textContent,
   }));
   const feed = {
