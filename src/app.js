@@ -32,7 +32,7 @@ const useProxy = (url, command = true) => {
   return proxy.toString();
 };
 
-const makeRequest = (url) => axios.get(useProxy(url, false))
+const makeRequest = (url) => axios.get(useProxy(url, true))
   .then((serverResponce) => {
     if (serverResponce.data.status?.error) {
       throw new Error('RequestError');
