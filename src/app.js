@@ -38,7 +38,7 @@ const makeRequest = (url) => axios.get(useProxy(url, true))
       throw new Error('RequestError');
     }
     return serverResponce.data.contents;
-  }).catch((err) => {
+  }).catch(() => {
     const error = new Error('networkError');
     error.isNetworkError = true;
     throw error;
@@ -119,8 +119,11 @@ export default () => {
         button: document.querySelector('.readMoreBtn'),
       },
     };
-    const handler = render(state, elements, i18nInstance);
-    const watchedState = onChange(state, handler);
+
+    const watchedState = onChange(
+      state,
+      render(state, elements, i18nInstance),
+    );
 
     $('#myModal').on('show.bs.modal', (e) => {
       const contentID = e.relatedTarget.dataset.postId;
