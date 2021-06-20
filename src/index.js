@@ -3,5 +3,5 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'bootstrap/js/dist/modal';
 import app from './app.js';
 
-app();
-// export default app;
+//app();
+export default app;
