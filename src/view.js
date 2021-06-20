@@ -74,6 +74,12 @@ export default (state, elements, i18n) => (path, value) => {
     );
   };
 
+  const disableInput = (elements, command = true) => {
+    if (command === false)
+      elements.input.removeAttribute('readonly');
+    if (command === true)
+      elements.input.setAttribute('readonly', true);
+  };
   const showValidationError = ({ input }, command = 'show') => {
     if (command === 'show') {
       input.classList.add('is-invalid');
@@ -126,15 +132,18 @@ export default (state, elements, i18n) => (path, value) => {
     switch (value) {
       case 'requesting':
         console.log('trying');
+        disableInput(elements);
         showStatus(i18n.t('statusBar.trying'));
         break;
       case 'getting':
         console.log('got it');
         showStatus(i18n.t('statusBar.success'), 'success');
         elements.input.value = '';
+        disableInput(elements, false);
         renderList(state);
         break;
       case 'failing':
+        disableInput(elements, false);
         showStatus(
           i18n.t(`statusBar.${state.feedRequest.error}`),
           'danger',
