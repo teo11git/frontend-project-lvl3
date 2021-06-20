@@ -24,7 +24,8 @@ const validate = ({ feeds }, userUrl) => {
   return null;
 };
 
-const useProxy = (url) => {
+const useProxy = (url, command = true) => {
+  if (command === false) return url;
   const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get');
   proxy.searchParams.set('disableCache', 'true');
   proxy.searchParams.set('url', `${url}`);
