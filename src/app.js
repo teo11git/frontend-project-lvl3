@@ -150,6 +150,7 @@ export default () => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const userUrl = formData.get('url');
+      console.log(`USER URL IS ${userUrl}`);
       const validationResult = validate(state, userUrl);
       if (validationResult !== null) {
         watchedState.formState.validationError = validationResult;
