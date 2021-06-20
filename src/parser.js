@@ -14,12 +14,12 @@ export default (data) => {
   const items = XMLdocument.querySelectorAll('item');
   const posts = [...items].map((item) => ({
     title: item.querySelector('title').textContent,
-    description: item.querySelector('title')?.textContent ?? '',
+    description: item.querySelector('description')?.textContent ?? '',
     link: item.querySelector('link').textContent,
   }));
   const feed = {
     domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
-    description: XMLdocument.querySelector('description').textContent,
+    description: XMLdocument.querySelector('title').textContent,
   };
   return { feed, posts };
 };
