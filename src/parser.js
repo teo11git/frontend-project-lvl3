@@ -19,6 +19,7 @@ export default (data) => {
   }));
   const feed = {
     domain: url.parse(XMLdocument.querySelector('link').textContent).hostname,
+    title: XMLdocument.querySelector('title').textContent,
     description: XMLdocument.querySelector('description').textContent,
   };
   return { feed, posts };

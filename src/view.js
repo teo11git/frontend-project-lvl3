@@ -28,7 +28,7 @@ export default (state, elements, i18n) => (path, value) => {
     feeds.forEach((feed) => {
       const feedTerm = document.createElement('dt');
       feedTerm.classList.add('col-3');
-      feedTerm.textContent = feed.domain;
+      feedTerm.textContent = feed.title;
       feedsDl.appendChild(feedTerm);
 
       const feedDefinition = document.createElement('dd');

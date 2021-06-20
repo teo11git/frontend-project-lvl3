@@ -4,4 +4,4 @@ import 'bootstrap/js/dist/modal';
 import app from './app.js';
 
 // app();
- export default app;
+export default app;
