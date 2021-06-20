@@ -114,7 +114,7 @@ export default () => {
       feedsContainer: document.querySelector('.feeds'),
       postsContainer: document.querySelector('.posts'),
       form: document.querySelector('form'),
-      button: document.querySelector('button'),
+      button: document.querySelector('.addBtn'),
       input: document.querySelector('input'),
       errorDiv: document.querySelector('.invalid-feedback'),
       modalWindow: {

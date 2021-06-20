@@ -74,14 +74,15 @@ export default (state, elements, i18n) => (path, value) => {
     );
   };
 
-  const disableElements = (elements, command = true) => {
+  const disableElements = ({ input, button }, command = true) => {
     if (command === false) {
-      elements.input.removeAttribute('readonly');
-      elements.button.removeAttribute('disable');
+      input.removeAttribute('readonly');
+      button.removeAttribute('disabled');
     }
-    if (command === true)
-      elements.input.setAttribute('readonly', true);
-      elements.button.setAttribute('disable', true);
+    if (command === true) {
+      input.setAttribute('readonly', true);
+      button.setAttribute('disabled', 'disabled');
+    }
   };
   const showValidationError = ({ input }, command = 'show') => {
     if (command === 'show') {
