@@ -135,7 +135,7 @@ export default (state, elements, i18n) => (path, value) => {
     switch (value) {
       case 'requesting':
         console.log('trying');
-        disableInput(elements);
+        disableElements(elements);
         showStatus(i18n.t('statusBar.trying'));
         break;
       case 'getting':
