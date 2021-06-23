@@ -24,15 +24,14 @@ const validate = ({ feeds }, userUrl) => {
   return null;
 };
 
-const useProxy = (url, command = true) => {
-  if (command === false) return url;
+const useProxy = (url) => {
   const proxy = new URL('https://hexlet-allorigins.herokuapp.com/get');
   proxy.searchParams.set('disableCache', 'true');
   proxy.searchParams.set('url', `${url}`);
   return proxy.toString();
 };
 
-const makeRequest = (url) => axios.get(useProxy(url, true))
+const makeRequest = (url) => axios.get(useProxy(url))
   .then((serverResponce) => {
     if (serverResponce.data.status?.error) {
       throw new Error('RequestError');
@@ -44,25 +43,27 @@ const makeRequest = (url) => axios.get(useProxy(url, true))
     throw error;
   });
 
-const runUpdater = (state, watchedState, feed) => {
-  const feedID = feed.id;
+const runUpdater = (watchedState, feed) => {
+  const feedId = feed.id;
 
   const update = () => {
     setTimeout((link) => {
       makeRequest(link)
-        .then((data) => parse(data))
-        .then(({ posts }) => {
-          const uniqNews = differenceWith(posts, state.posts, (p1, p2) => p1.link === p2.link);
-          if (uniqNews.length === 0) {
-            // no news
-          } else {
+        .then((data) => {
+          const { posts } = parse(data);
+          const uniqNews = differenceWith(
+            posts,
+            watchedState.posts,
+            (p1, p2) => p1.link === p2.link,
+          );
+          if (uniqNews.length !== 0) {
             uniqNews.forEach((item) => {
               item.id = uniqueId();
-              item.feedId = feedID;
+              item.feedId = feedId;
               watchedState.posts.unshift(item);
             });
           }
-          update(link);
+          update();
         }).catch(console.error);
     }, 5000, feed.url);
   };
@@ -126,20 +127,20 @@ export default () => {
     );
 
     $('#myModal').on('show.bs.modal', (e) => {
-      const contentID = e.relatedTarget.dataset.postId;
-      const currentPost = state.posts.find((post) => post.id === contentID);
+      const contentId = e.relatedTarget.dataset.postId;
+      const currentPost = state.posts.find((post) => post.id === contentId);
       elements.modalWindow.title.textContent = currentPost.title;
       elements.modalWindow.body.innerHTML = DOMPurify.sanitize(currentPost.description);
-      elements.modalWindow.button.dataset.postID = contentID;
+      elements.modalWindow.button.dataset.postId = contentId;
       const { postsWasRead } = state.ui;
-      if (!postsWasRead.includes(contentID)) watchedState.ui.postsWasRead.push(contentID);
+      if (!postsWasRead.includes(contentId)) watchedState.ui.postsWasRead.push(contentId);
     });
     $('#myModal').on('hide.bs.modal', () => {
       elements.modalWindow.body.innerHTML = '';
     });
     elements.modalWindow.button.addEventListener('click', (e) => {
-      const neededID = e.target.dataset.postID;
-      const { link } = state.posts.find((post) => post.id === neededID);
+      const neededId = e.target.dataset.postId;
+      const { link } = state.posts.find((post) => post.id === neededId);
       window.open(link, '_blank');
     });
 
@@ -150,14 +151,14 @@ export default () => {
       const validationResult = validate(state, userUrl);
       if (validationResult !== null) {
         watchedState.formState.validationError = validationResult;
-        watchedState.formState.validity = false; //           TRANSITION
+        watchedState.formState.validity = false; //                            TRANSITION
         return;
       }
       watchedState.formState.validity = true;
       watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
       makeRequest(userUrl)
-        .then((data) => parse(data))
-        .then(({ feed, posts }) => {
+        .then((data) => {
+          const { feed, posts } = parse(data);
           feed.id = uniqueId();
           feed.url = userUrl;
           posts.forEach((post) => {
@@ -166,8 +167,8 @@ export default () => {
             state.posts.push(post);
           });
           state.feeds.push(feed);
-          runUpdater(state, watchedState, feed);
-          watchedState.feedRequest.process = 'getting'; //                  TRANSITION
+          runUpdater(watchedState, feed);
+          watchedState.feedRequest.process = 'success'; //                    TRANSITION
         })
         .catch((err) => {
           if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
