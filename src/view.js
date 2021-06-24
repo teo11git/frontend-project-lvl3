@@ -162,7 +162,7 @@ export default (state, elements, i18n) => {
       case 'feeds':
         renderFeeds(state);
         break;
-      case 'ui.postWasRead':
+      case 'ui.postsWasRead':
         renderPosts(state);
         break;
       default:
