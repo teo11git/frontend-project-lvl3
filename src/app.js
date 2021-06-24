@@ -1,4 +1,9 @@
 /* eslint-disable no-param-reassign */
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import 'bootstrap/js/dist/modal';
+
 import $ from 'jquery';
 import axios from 'axios';
 import { uniqueId, differenceWith } from 'lodash';
@@ -6,6 +11,7 @@ import * as yup from 'yup';
 import onChange from 'on-change';
 import i18next from 'i18next';
 import DOMPurify from 'dompurify';
+
 import resources from './locales';
 import render from './view.js';
 import parse from './parser.js';
