@@ -135,7 +135,6 @@ export default () => {
       window.open(link, '_blank');
     });
     elements.input.addEventListener('input', () => {
-      console.log('change!');
       watchedState.formState.validity = true;
     });
 
@@ -167,7 +166,6 @@ export default () => {
           watchedState.feedRequest.process = 'success'; //                    TRANSITION
         })
         .catch((err) => {
-          console.log(err);
           if (err.isAxiosError) watchedState.feedRequest.error = 'networkError';
 
           if (err.isParseError) watchedState.feedRequest.error = 'parseError';

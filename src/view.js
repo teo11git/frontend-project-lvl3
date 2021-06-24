@@ -30,7 +30,6 @@ export default (state, elements, i18n) => {
   };
 
   const renderPosts = ({ posts }) => {
-    console.log(posts);
     elements.postsContainer.innerHTML = '';
 
     const postHeader = document.createElement('h2');
@@ -150,7 +149,6 @@ export default (state, elements, i18n) => {
   };
 
   return (path, value) => {
-    console.log(path);
     switch (path) {
       case 'formState.validity':
         formHandler(value);
