@@ -30,6 +30,7 @@ export default (state, elements, i18n) => {
   };
 
   const renderPosts = ({ posts }) => {
+    console.log(posts);
     elements.postsContainer.innerHTML = '';
 
     const postHeader = document.createElement('h2');
@@ -70,12 +71,6 @@ export default (state, elements, i18n) => {
     elements.postsContainer.appendChild(postsUl);
   };
 
-  const updateErrorMessage = ({ errorDiv }) => {
-    errorDiv.textContent = i18n.t(
-      `validationMessages.${state.formState.validationError}`,
-    );
-  };
-
   const disableElements = ({ input, button }, command = true) => {
     if (command === false) {
       input.removeAttribute('readonly');
@@ -85,17 +80,20 @@ export default (state, elements, i18n) => {
       button.setAttribute('disabled', 'disabled');
     }
   };
-  const showValidationError = ({ input }, command = 'show') => {
-    if (command === 'show') {
-      input.classList.add('is-invalid');
-      input.classList.remove('border-primary');
-      input.classList.add('border-danger');
-    }
-    if (command === 'hide') {
-      input.classList.remove('is-invalid');
-      input.classList.remove('border-danger');
-      input.classList.add('border-primary');
-    }
+
+  const showValidationError = ({ input, errorDiv }) => {
+    errorDiv.textContent = i18n.t(
+      `validationMessages.${state.formState.validationError}`,
+    );
+    input.classList.add('is-invalid');
+    input.classList.remove('border-primary');
+    input.classList.add('border-danger');
+  };
+
+  const hideValidationError = ({ input }) => {
+    input.classList.remove('is-invalid');
+    input.classList.remove('border-danger');
+    input.classList.add('border-primary');
   };
 
   const showStatus = (text, mode) => {
@@ -116,55 +114,61 @@ export default (state, elements, i18n) => {
     div.textContent = text;
   };
 
-  return (path, value) => {
-    if (path === 'formState.validationError') {
-      updateErrorMessage(elements);
+  const formHandler = (val) => {
+    switch (val) {
+      case false:
+        showValidationError(elements);
+        showStatus(i18n.t('statusBar.validationError'), 'danger');
+        break;
+      case true:
+        hideValidationError(elements, 'hide');
+        break;
+      default:
     }
+  };
 
-    if (path === 'formState.validity') {
-      switch (value) {
-        case false:
-          updateErrorMessage(elements);
-          showValidationError(elements);
-          showStatus(i18n.t('statusBar.validationError'), 'danger');
-          break;
-        case true:
-          showValidationError(elements, 'hide');
-          break;
-        default:
-      }
+  const processHandler = (val) => {
+    switch (val) {
+      case 'requesting':
+        disableElements(elements);
+        showStatus(i18n.t('statusBar.trying'));
+        break;
+      case 'success':
+        showStatus(i18n.t('statusBar.success'), 'success');
+        elements.input.value = '';
+        disableElements(elements, false);
+        break;
+      case 'failing':
+        disableElements(elements, false);
+        showStatus(
+          i18n.t(`statusBar.${state.feedRequest.error}`),
+          'danger',
+        );
+        break;
+      default:
     }
-    if (path === 'feedRequest.process') {
-      switch (value) {
-        case 'requesting':
-          disableElements(elements);
-          showStatus(i18n.t('statusBar.trying'));
-          break;
-        case 'success':
-          showStatus(i18n.t('statusBar.success'), 'success');
-          elements.input.value = '';
-          disableElements(elements, false);
-          renderFeeds(state);
-          renderPosts(state);
-          break;
-        case 'failing':
-          disableElements(elements, false);
-          showStatus(
-            i18n.t(`statusBar.${state.feedRequest.error}`),
-            'danger',
-          );
-          break;
-        default:
-      }
-    }
-    if (path === 'posts') {
-      renderPosts(state);
-    }
-    if (path === 'feeds') {
-      renderFeeds(state);
-    }
-    if (path === 'ui.postsWasRead') {
-      renderPosts(state);
+  };
+
+  return (path, value) => {
+    console.log(path);
+    switch (path) {
+      case 'formState.validity':
+        formHandler(value);
+        break;
+      case 'feedRequest.process':
+        processHandler(value);
+        break;
+      case 'posts':
+        renderPosts(state);
+        break;
+      case 'feeds':
+        renderFeeds(state);
+        break;
+      case 'ui.postWasRead':
+        renderPosts(state);
+        break;
+      default:
+        // do nothing
     }
   };
 };

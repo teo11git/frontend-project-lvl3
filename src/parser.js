@@ -1,15 +1,13 @@
 import url from 'url';
 
-const isValidRss = (dom) => !(dom.querySelector('parsererror'));
-
 export default (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
-
-  if (isValidRss(XMLdocument) === false) {
-    const error = new Error();
-    error.isParseError = true;
-    error.message = 'parseError';
-    throw error;
+  const errors = XMLdocument.querySelector('parsererror')?.textContent;
+  if (errors) {
+    console.log(errors);
+    const err = new Error(errors);
+    err.isParseError = true;
+    throw err;
   }
   const items = XMLdocument.querySelectorAll('item');
   const posts = [...items].map((item) => ({

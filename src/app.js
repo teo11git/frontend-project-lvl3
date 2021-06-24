@@ -32,16 +32,7 @@ const useProxy = (url) => {
 };
 
 const makeRequest = (url) => axios.get(useProxy(url))
-  .then((serverResponce) => {
-    if (serverResponce.data.status?.error) {
-      throw new Error('RequestError');
-    }
-    return serverResponce.data.contents;
-  }).catch(() => {
-    const error = new Error('networkError');
-    error.isNetworkError = true;
-    throw error;
-  });
+  .then((serverResponce) => serverResponce.data.contents);
 
 const runUpdater = (watchedState, feed) => {
   const feedId = feed.id;
@@ -143,6 +134,10 @@ export default () => {
       const { link } = state.posts.find((post) => post.id === neededId);
       window.open(link, '_blank');
     });
+    elements.input.addEventListener('input', () => {
+      console.log('change!');
+      watchedState.formState.validity = true;
+    });
 
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -164,14 +159,16 @@ export default () => {
           posts.forEach((post) => {
             post.feedId = feed.id;
             post.id = uniqueId();
-            state.posts.push(post);
           });
-          state.feeds.push(feed);
+
+          watchedState.feeds.push(feed);
+          watchedState.posts = [...watchedState.posts, ...posts];
           runUpdater(watchedState, feed);
           watchedState.feedRequest.process = 'success'; //                    TRANSITION
         })
         .catch((err) => {
-          if (err.isNetworkError) watchedState.feedRequest.error = 'networkError';
+          console.log(err);
+          if (err.isAxiosError) watchedState.feedRequest.error = 'networkError';
 
           if (err.isParseError) watchedState.feedRequest.error = 'parseError';
 
