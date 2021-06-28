@@ -150,7 +150,7 @@ export default (state, elements, i18n) => {
 
   return (path, value) => {
     switch (path) {
-      case 'formState.validity':
+      case 'formState.isValid':
         formHandler(value);
         break;
       case 'feedRequest.process':

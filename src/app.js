@@ -53,15 +53,14 @@ const runUpdater = (watchedState, feed) => {
             watchedState.posts,
             (p1, p2) => p1.link === p2.link,
           );
-          if (uniqNews.length !== 0) {
-            uniqNews.forEach((item) => {
-              item.id = uniqueId();
-              item.feedId = feedId;
-              watchedState.posts.unshift(item);
-            });
-          }
-          update();
-        }).catch(console.error);
+          uniqNews.forEach((item) => {
+            item.id = uniqueId();
+            item.feedId = feedId;
+          });
+          watchedState.posts = [...uniqNews, ...watchedState.posts];
+        })
+        .catch(console.error)
+        .finally(update);
     }, 5000, feed.url);
   };
   update();
@@ -71,7 +70,7 @@ export default () => {
   const state = {
     currentLang: 'ru',
     formState: {
-      validity: true,
+      isValid: true,
       validationError: null,
     },
     feedRequest: {
@@ -141,20 +140,20 @@ export default () => {
       window.open(link, '_blank');
     });
     elements.input.addEventListener('input', () => {
-      watchedState.formState.validity = true;
+      watchedState.formState.isValid = true;
     });
 
     elements.form.addEventListener('submit', (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const userUrl = formData.get('url');
-      const validationResult = validate(state, userUrl);
-      if (validationResult !== null) {
-        watchedState.formState.validationError = validationResult;
-        watchedState.formState.validity = false; //                            TRANSITION
+      const error = validate(state, userUrl);
+      if (error !== null) {
+        watchedState.formState.validationError = error;
+        watchedState.formState.isValid = false; //                            TRANSITION
         return;
       }
-      watchedState.formState.validity = true;
+      watchedState.formState.isValid = true;
       watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
       makeRequest(userUrl)
         .then((data) => {
