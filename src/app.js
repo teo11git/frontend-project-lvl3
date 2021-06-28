@@ -157,17 +157,17 @@ export default () => {
       watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
       makeRequest(userUrl)
         .then((data) => {
-          const { feed, posts } = parse(data);
-          feed.id = uniqueId();
-          feed.url = userUrl;
+          const { chanel, posts } = parse(data);
+          chanel.id = uniqueId();
+          chanel.url = userUrl;
           posts.forEach((post) => {
-            post.feedId = feed.id;
+            post.feedId = chanel.id;
             post.id = uniqueId();
           });
 
-          watchedState.feeds.push(feed);
+          watchedState.feeds.push(chanel);
           watchedState.posts = [...watchedState.posts, ...posts];
-          runUpdater(watchedState, feed);
+          runUpdater(watchedState, chanel);
           watchedState.feedRequest.process = 'success'; //                    TRANSITION
         })
         .catch((err) => {

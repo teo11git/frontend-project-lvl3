@@ -1,5 +1,6 @@
 export default (data) => {
   const XMLdocument = new DOMParser().parseFromString(data, 'application/xml');
+  console.log(XMLdocument);
   const errors = XMLdocument.querySelector('parsererror')?.textContent;
   if (errors) {
     const err = new Error(errors);
@@ -12,9 +13,9 @@ export default (data) => {
     description: item.querySelector('description')?.textContent ?? '',
     link: item.querySelector('link').textContent,
   }));
-  const feed = {
+  const chanel = {
     title: XMLdocument.querySelector('title').textContent,
     description: XMLdocument.querySelector('description').textContent,
   };
-  return { feed, posts };
+  return { chanel, posts };
 };
