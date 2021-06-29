@@ -71,7 +71,7 @@ export default (state, elements, i18n) => {
   };
 
   const disableElements = ({ input, button }, command = true) => {
-    if (command === true) {
+    if (command) {
       input.setAttribute('readonly', true);
       button.setAttribute('disabled', 'disabled');
     } else {
@@ -113,12 +113,12 @@ export default (state, elements, i18n) => {
     div.textContent = text;
   };
 
-  const formHandler = (val) => {
-    if (val === false) {
+  const formHandler = (isValid) => {
+    if (isValid) {
+      hideValidationError(elements, 'hide');
+    } else {
       showValidationError(elements);
       showStatus(i18n.t('statusBar.validationError'), 'danger');
-    } else {
-      hideValidationError(elements, 'hide');
     }
   };
 
