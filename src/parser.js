@@ -13,9 +13,9 @@ export default (data) => {
     description: item.querySelector('description')?.textContent ?? '',
     link: item.querySelector('link').textContent,
   }));
-  const chanel = {
+  const channel = {
     title: XMLdocument.querySelector('title').textContent,
     description: XMLdocument.querySelector('description').textContent,
   };
-  return { chanel, posts };
+  return { channel, posts };
 };

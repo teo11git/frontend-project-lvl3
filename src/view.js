@@ -114,15 +114,11 @@ export default (state, elements, i18n) => {
   };
 
   const formHandler = (val) => {
-    switch (val) {
-      case false:
-        showValidationError(elements);
-        showStatus(i18n.t('statusBar.validationError'), 'danger');
-        break;
-      case true:
-        hideValidationError(elements, 'hide');
-        break;
-      default:
+    if (val === false) {
+      showValidationError(elements);
+      showStatus(i18n.t('statusBar.validationError'), 'danger');
+    } else if (val === true) {
+      hideValidationError(elements, 'hide');
     }
   };
 
@@ -145,6 +141,7 @@ export default (state, elements, i18n) => {
         );
         break;
       default:
+        throw new Error(`Unknown input value: '${val}'!`);
     }
   };
 
@@ -166,7 +163,7 @@ export default (state, elements, i18n) => {
         renderPosts(state);
         break;
       default:
-        // do nothing
+        throw new Error(`Unknown path: '${path}'!`);
     }
   };
 };

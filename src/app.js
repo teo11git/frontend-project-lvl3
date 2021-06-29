@@ -16,12 +16,12 @@ import resources from './locales';
 import render from './view.js';
 import parse from './parser.js';
 
-const validate = ({ feeds }, userUrl) => {
+const validate = (existingUrls, userUrl) => {
   const validator = yup
     .string()
     .required()
     .url()
-    .notOneOf(feeds.map(({ url }) => url));
+    .notOneOf(existingUrls);
   try {
     validator.validateSync(userUrl);
   } catch (error) {
@@ -53,11 +53,8 @@ const runUpdater = (watchedState, feed) => {
             watchedState.posts,
             (p1, p2) => p1.link === p2.link,
           );
-          uniqNews.forEach((item) => {
-            item.id = uniqueId();
-            item.feedId = feedId;
-          });
-          watchedState.posts = [...uniqNews, ...watchedState.posts];
+          const prepared = uniqNews.map((item) => ({ ...item, id: uniqueId(), feedId }));
+          watchedState.posts = [...prepared, ...watchedState.posts];
         })
         .catch(console.error)
         .finally(update);
@@ -147,7 +144,10 @@ export default () => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const userUrl = formData.get('url');
-      const error = validate(state, userUrl);
+      const error = validate(
+        state.feeds.map(({ url }) => url),
+        userUrl,
+      );
       if (error !== null) {
         watchedState.formState.validationError = error;
         watchedState.formState.isValid = false; //                            TRANSITION
@@ -157,17 +157,15 @@ export default () => {
       watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
       makeRequest(userUrl)
         .then((data) => {
-          const { chanel, posts } = parse(data);
-          chanel.id = uniqueId();
-          chanel.url = userUrl;
-          posts.forEach((post) => {
-            post.feedId = chanel.id;
-            post.id = uniqueId();
-          });
+          const { channel, posts } = parse(data);
+          const channelId = uniqueId();
+          const preparedChannel = { ...channel, id: channelId, url: userUrl };
+          const preparedPosts = posts
+            .map((post) => ({ ...post, feedId: channelId, id: uniqueId() }));
 
-          watchedState.feeds.push(chanel);
-          watchedState.posts = [...watchedState.posts, ...posts];
-          runUpdater(watchedState, chanel);
+          watchedState.feeds.push(preparedChannel);
+          watchedState.posts = [...watchedState.posts, ...preparedPosts];
+          runUpdater(watchedState, preparedChannel);
           watchedState.feedRequest.process = 'success'; //                    TRANSITION
         })
         .catch((err) => {

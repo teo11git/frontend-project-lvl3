@@ -13,7 +13,7 @@ export default {
       trying: 'Загрузка новостей...',
       networkError: 'Ошибка сети',
       parseError: 'Ресурс не содержит валидный RSS',
-      validationError: 'Пожалуйста проверте адрес',
+      validationError: 'Пожалуйста проверьте адрес',
     },
   },
 };
