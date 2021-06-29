@@ -163,7 +163,7 @@ export default (state, elements, i18n) => {
         renderPosts(state);
         break;
       default:
-        // do nothing
+        /* do nothing */
     }
   };
 };
