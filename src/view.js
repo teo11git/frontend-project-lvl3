@@ -146,20 +146,27 @@ export default (state, elements, i18n) => {
   };
 
   return (path, value) => {
-    if (path === 'formState.isValid') {
-      formHandler(value);
-    }
-    if (path === 'feedRequest.process') {
-      processHandler(value);
-    }
-    if (path === 'posts') {
-      renderPosts(state);
-    }
-    if (path === 'feeds') {
-      renderFeeds(state);
-    }
-    if (path === 'ui.postsWasRead') {
-      renderPosts(state);
+<<<<<<< HEAD
+======
+    switch (path) {
+      case 'formState.isValid':
+        formHandler(value);
+        break;
+      case 'feedRequest.process':
+        processHandler(value);
+        break;
+      case 'posts':
+        renderPosts(state);
+        break;
+      case 'feeds':
+        renderFeeds(state);
+        break;
+      case 'ui.postsWasRead':
+        renderPosts(state);
+        break;
+      default:
+        /* do nothing */
+>>>>>>> forDefault
     }
   };
 };
