@@ -146,8 +146,6 @@ export default (state, elements, i18n) => {
   };
 
   return (path, value) => {
-<<<<<<< HEAD
-======
     switch (path) {
       case 'formState.isValid':
         formHandler(value);
@@ -166,7 +164,6 @@ export default (state, elements, i18n) => {
         break;
       default:
         /* do nothing */
->>>>>>> forDefault
     }
   };
 };
