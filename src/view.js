@@ -71,12 +71,12 @@ export default (state, elements, i18n) => {
   };
 
   const disableElements = ({ input, button }, command = true) => {
-    if (command === false) {
-      input.removeAttribute('readonly');
-      button.removeAttribute('disabled');
-    } else if (command === true) {
+    if (command === true) {
       input.setAttribute('readonly', true);
       button.setAttribute('disabled', 'disabled');
+    } else {
+      input.removeAttribute('readonly');
+      button.removeAttribute('disabled');
     }
   };
 
@@ -117,7 +117,7 @@ export default (state, elements, i18n) => {
     if (val === false) {
       showValidationError(elements);
       showStatus(i18n.t('statusBar.validationError'), 'danger');
-    } else if (val === true) {
+    } else {
       hideValidationError(elements, 'hide');
     }
   };
