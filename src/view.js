@@ -163,7 +163,7 @@ export default (state, elements, i18n) => {
         renderPosts(state);
         break;
       default:
-        throw new Error(`Unknown path: '${path}'!`);
+        // do nothing
     }
   };
 };
