@@ -47,9 +47,9 @@ const runUpdater = (watchedState, feed) => {
     setTimeout((link) => {
       makeRequest(link)
         .then((data) => {
-          const { posts } = parse(data);
+          const { items } = parse(data);
           const uniqNews = differenceWith(
-            posts,
+            items,
             watchedState.posts,
             (p1, p2) => p1.link === p2.link,
           );
@@ -157,10 +157,10 @@ export default () => {
       watchedState.feedRequest.process = 'requesting'; //                      TRANSITION
       makeRequest(userUrl)
         .then((data) => {
-          const { channel, posts } = parse(data);
+          const { channel, items } = parse(data);
           const channelId = uniqueId();
           const preparedChannel = { ...channel, id: channelId, url: userUrl };
-          const preparedPosts = posts
+          const preparedPosts = items
             .map((post) => ({ ...post, feedId: channelId, id: uniqueId() }));
 
           watchedState.feeds.push(preparedChannel);

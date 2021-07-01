@@ -7,15 +7,15 @@ export default (data) => {
     err.isParseError = true;
     throw err;
   }
-  const items = XMLdocument.querySelectorAll('item');
-  const posts = [...items].map((item) => ({
-    title: item.querySelector('title').textContent,
-    description: item.querySelector('description')?.textContent ?? '',
-    link: item.querySelector('link').textContent,
-  }));
+  const items = [...XMLdocument.querySelectorAll('item')]
+    .map((item) => ({
+      title: item.querySelector('title').textContent,
+      description: item.querySelector('description')?.textContent ?? '',
+      link: item.querySelector('link').textContent,
+    }));
   const channel = {
     title: XMLdocument.querySelector('title').textContent,
     description: XMLdocument.querySelector('description').textContent,
   };
-  return { channel, posts };
+  return { channel, items };
 };
